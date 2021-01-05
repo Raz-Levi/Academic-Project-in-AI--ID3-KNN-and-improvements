@@ -3,14 +3,15 @@ ID3 Algorithm
 """
 
 from typing import Tuple
+from typing import Callable
 import pandas as pd
 import numpy as np
 from math import log2
 
 Examples = np.array
-Feature = int
+Features = np.array
 Children = list
-Classifier = Tuple[Feature, Children, int]
+Classifier = Tuple[int, Children, int]
 
 TRAIN_PATH = "train.csv"
 TEST_PATH = "test.csv"
@@ -33,14 +34,15 @@ def get_examples_and_features_from_csv(path: str) -> Tuple[Examples, Examples]:
     return np.array(examples), np.array(features)
 
 
-def get_examples_from_csv(path: str) -> Examples:
+def get_examples_from_csv(path: str) -> Tuple[Examples, Features]:
     data_frame = pd.read_csv(filepath_or_buffer=path, sep=",")
     examples = []
     for row in data_frame.values:
         example = list(row)
         example[0] = 1 if example[0] == "M" else 0
         examples.append(example)
-    return np.array(examples)
+
+    return np.array(examples), np.array([i+1 for i in range(len(np.transpose(examples))-1)])
 
 
 """"""""""""""""""""""""""""""""""""""""""" ID3 """""""""""""""""""""""""""""""""""""""""""
@@ -49,8 +51,8 @@ def get_examples_from_csv(path: str) -> Examples:
 class ID3ContinuousFeatures:
     @staticmethod
     def get_classify(train_path) -> Classifier:
-        examples = get_examples_from_csv(train_path)
-        return ID3ContinuousFeatures._tdidt_algorithm(examples, ID3ContinuousFeatures._majority_class(examples),
+        examples, features = get_examples_from_csv(train_path)
+        return ID3ContinuousFeatures._tdidt_algorithm(examples, features, ID3ContinuousFeatures._majority_class(examples),
                                                       ID3ContinuousFeatures._max_ig)
 
     @staticmethod
@@ -59,52 +61,59 @@ class ID3ContinuousFeatures:
 
     ######### Helper Functions for ID3 Algorithm #########
     @staticmethod
-    def _tdidt_algorithm(examples: Examples, default: int, select_feature) -> Classifier:
+    def _tdidt_algorithm(examples: Examples, features: Features, default: int, select_feature: Callable[[Examples], Tuple[int, Examples, Examples]]) -> Classifier:
         # Empty leaf
-        if not examples:
+        if len(examples) == 0:
             return 0, [], default
 
         # Consistent node turns leaf
         majority_class = ID3ContinuousFeatures._majority_class(examples)
-        if len(examples[0]) == 1 or ID3ContinuousFeatures._check_consistent_node(examples, majority_class):
+        if features.size == 0 or ID3ContinuousFeatures._check_consistent_node(examples, majority_class):
             return 0, [], majority_class
 
         # main decision
         # dynamic_features = ID3ContinuousFeatures._continuous_features(features)
         chosen_feature, class_one, class_two = select_feature(examples)
+        assert chosen_feature != 0
 
         # create subtrees fits to the chosen_feature
-        subtrees = [ID3ContinuousFeatures._tdidt_algorithm(np.delete(class_one, chosen_feature, 1), majority_class,
+        subtrees = [ID3ContinuousFeatures._tdidt_algorithm(np.delete(class_one, chosen_feature, 1),
+                                                           np.delete(features, chosen_feature-1),
+                                                           majority_class,
                                                            select_feature),
-                    ID3ContinuousFeatures._tdidt_algorithm(np.delete(class_two, chosen_feature, 1), majority_class,
+
+                    ID3ContinuousFeatures._tdidt_algorithm(np.delete(class_two, chosen_feature, 1),
+                                                           np.delete(features, chosen_feature-1),
+                                                           majority_class,
                                                            select_feature)]
-        return chosen_feature, subtrees, majority_class
+
+        return features[chosen_feature-1], subtrees, majority_class
 
     @staticmethod
-    def _max_ig(examples: Examples) -> Tuple[Feature, Examples, Examples]:
+    def _max_ig(examples: Examples) -> Tuple[int, Examples, Examples]:
         father_entropy = ID3ContinuousFeatures._entropy(examples)
 
         max_class_one = []
         max_class_two = []
-        max_feature_entropy = -np.inf
-        max_feature = 0
+        max_ig = -np.inf
+        argmax_ig = 0
 
-        for feature in range(1, len(examples)):
+        for feature in range(1, len(np.transpose(examples))):
             class_one, class_two = ID3ContinuousFeatures._divide_by_feature(examples, feature)
             son1_entropy = ID3ContinuousFeatures._entropy(class_one)
             son2_entropy = ID3ContinuousFeatures._entropy(class_two)
             ig = father_entropy - (son1_entropy * (len(class_one) / len(examples)) + son2_entropy * (
                     len(class_two) / len(examples)))
 
-            if max_feature_entropy <= ig:
-                max_feature_entropy = ig
-                max_feature = feature
+            if max_ig <= ig:
+                max_ig = ig
+                argmax_ig = feature
                 max_class_one = class_one
                 max_class_two = class_two
 
-        return max_feature, max_class_one, max_class_two
+        return argmax_ig, max_class_one, max_class_two
 
-    @staticmethod
+    #@staticmethod
     # def _continuous_features(features: Features) -> Features:
     #     print(features)
     #     continuous_features = []
@@ -149,7 +158,7 @@ class ID3ContinuousFeatures:
         elif num_true < len(examples) - num_true:
             return 0
         else:
-            return -1  # TODO: what about tie?
+            return 1  # TODO: what about tie?
 
     @staticmethod
     def _check_consistent_node(examples: Examples, c: int) -> bool:
@@ -163,7 +172,12 @@ class ID3ContinuousFeatures:
     def _entropy(examples: Examples) -> float:
         num_true = np.count_nonzero((examples.transpose())[0])
         p_true = num_true / len(examples)
-        p_false = (len(examples) - num_true) / len(examples)
+        p_false = 1 - p_true
+
+        if p_true == 1.:
+            p_false = 1
+        elif p_true == 0.:
+            p_true = 1
 
         return -(p_true * log2(p_true) + p_false * log2(p_false))
 
@@ -171,20 +185,14 @@ class ID3ContinuousFeatures:
 """"""""""""""""""""""""""""""""""""""""""" Main """""""""""""""""""""""""""""""""""""""""""
 
 
-# TODO: remove
-def test_read_csv():
-    examples, features = get_examples_from_csv("try.csv")
-    assert len(examples) == len(features)
-    print(examples)
-    print(features[0])
+def test():
+    csv_path = "./test_csv/small_binary.csv"
+    classifier = ID3ContinuousFeatures.get_classify(csv_path)
+    print(classifier)
 
-
-# def test_continuous_features():
-#     _, features = get_examples_from_csv("try2.csv")
-#     print(ID3ContinuousFeatures._continuous_features(features))
 
 def main():
-    test_read_csv()
+    test()
 
 
 if __name__ == "__main__":
