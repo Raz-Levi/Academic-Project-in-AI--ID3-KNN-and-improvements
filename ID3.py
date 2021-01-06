@@ -1,34 +1,13 @@
 """
 ID3 Algorithm
 """
-import numpy as np
-import matplotlib.pyplot as plt
-from utils import get_full_examples_from_csv, get_generator_examples_from_csv
-from sklearn.model_selection import KFold
+from utils import *
 from math import log2
-from random import randint
-
-from typing import Tuple
-from typing import Callable
-
-#TODO: Delete
-from utils import create_test
-
-Examples = np.array
-Features = np.array
-Children = list
-Classifier = Tuple[int, Children, int]
-
-TRAIN_PATH = "./train.csv"
-TEST_PATH = "./test.csv"
-N_SPLIT = 5
-SHUFFLE = True
-RANDOM_STATE = 316579275
 
 """"""""""""""""""""""""""""""""""""""""""" ID3 """""""""""""""""""""""""""""""""""""""""""
 
 
-class ID3ContinuousFeatures:
+class ID3ContinuousFeatures(object):
     @staticmethod
     def learn_without_pruning(train_path: str, test_path: str) -> float:
         train_examples, train_features = get_full_examples_from_csv(train_path)
@@ -77,7 +56,7 @@ class ID3ContinuousFeatures:
         majority_class = ID3ContinuousFeatures._majority_class(examples)
         if len(examples) <= M or features.size == 0 or ID3ContinuousFeatures._check_consistent_node(examples,
                                                                                                     majority_class):
-            if len(examples) <= M and M!=1: # TODO: Delete
+            if len(examples) <= M != 1:  # TODO: Delete
                 print(f'{M}: len(examples) <= M') # TODO: Delete
 
             return 0, [], majority_class

@@ -2,18 +2,27 @@
 Utils For Project
 """
 #TODO: Delete
-from random import randint
 import csv
 import os
 
 import pandas as pd
 import numpy as np
+from random import randint
+import matplotlib.pyplot as plt
+from sklearn.model_selection import KFold
 
 from typing import Tuple
-
+from typing import Callable
 Examples = np.array
 Features = np.array
+Children = list
+Classifier = Tuple[int, Children, int]
 
+TRAIN_PATH = "./train.csv"
+TEST_PATH = "./test.csv"
+N_SPLIT = 5
+SHUFFLE = True
+RANDOM_STATE = 316579275
 
 def get_full_examples_from_csv(path: str) -> Tuple[Examples, Features]:
     data_frame = pd.read_csv(filepath_or_buffer=path, sep=",")
@@ -26,7 +35,7 @@ def get_full_examples_from_csv(path: str) -> Tuple[Examples, Features]:
     return np.array(examples), np.array([i for i in range(1, len(data_frame.columns)+1)])
 
 
-def get_generator_examples_from_csv(path: str) -> Tuple[Examples, Features]:
+def get_generator_examples_from_csv(path: str) -> Examples:
     data_frame = pd.read_csv(filepath_or_buffer=path, sep=",")
     for row in data_frame.values:
         example = list(row)
