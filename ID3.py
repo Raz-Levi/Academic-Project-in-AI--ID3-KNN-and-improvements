@@ -1,17 +1,13 @@
 """
 ID3 Algorithm
 """
+import numpy as np
+from utils import get_examples_from_csv
+from math import log2
+from random import randint
 
 from typing import Tuple
 from typing import Callable
-import pandas as pd
-import numpy as np
-from math import log2
-
-#TODO: Delete
-from random import randint
-import csv
-import os
 
 Examples = np.array
 Features = np.array
@@ -21,35 +17,39 @@ Classifier = Tuple[int, Children, int]
 TRAIN_PATH = "train.csv"
 TEST_PATH = "test.csv"
 
-
-def get_examples_from_csv(path: str) -> Tuple[Examples, Features]:
-    data_frame = pd.read_csv(filepath_or_buffer=path, sep=",")
-    examples = []
-    for row in data_frame.values:
-        example = list(row)
-        example[0] = 1 if example[0] == "M" else 0
-        examples.append(example)
-
-    return np.array(examples), np.array([i+1 for i in range(len(np.transpose(examples))-1)])
-
-
 """"""""""""""""""""""""""""""""""""""""""" ID3 """""""""""""""""""""""""""""""""""""""""""
 
 
 class ID3ContinuousFeatures:
     @staticmethod
-    def get_classify(train_path) -> Classifier:
+    def get_classifier(train_path: str) -> Classifier:
         examples, features = get_examples_from_csv(train_path)
-        return ID3ContinuousFeatures._tdidt_algorithm(examples, features, ID3ContinuousFeatures._majority_class(examples),
+        return ID3ContinuousFeatures._tdidt_algorithm(examples, features,
+                                                      ID3ContinuousFeatures._majority_class(examples),
                                                       ID3ContinuousFeatures._max_ig)
 
     @staticmethod
-    def get_accuracy(test_path) -> float:
-        pass
+    def get_accuracy(classifier: Classifier, test_path: str) -> float:
+        examples, _ = get_examples_from_csv(test_path)
+        true_pos, true_neg = 0, 0
+        for example in examples:
+            example_result = ID3ContinuousFeatures._test_example(classifier, example)
+            if example_result == 1 and example[0] == 1:
+                true_pos += 1
+            elif example_result == 0 and example[0] == 0:
+                true_neg += 1
+
+        return (true_pos + true_neg) / len(examples)
+
+    @staticmethod
+    def learn(train_path: str, test_path: str) -> float:
+        return ID3ContinuousFeatures.get_accuracy(ID3ContinuousFeatures.get_classifier(train_path), test_path)
 
     ######### Helper Functions for ID3 Algorithm #########
     @staticmethod
-    def _tdidt_algorithm(examples: Examples, features: Features, default: int, select_feature: Callable[[Examples], Tuple[int, Examples, Examples]]) -> Classifier:
+    def _tdidt_algorithm(examples: Examples, features: Features, default: int,
+                         select_feature: Callable[[Examples], Tuple[int, Examples, Examples]],
+                         M: int = 1) -> Classifier:
         # Empty leaf
         if len(examples) == 0:
             return 0, [], default
@@ -62,23 +62,23 @@ class ID3ContinuousFeatures:
         # main decision
         # dynamic_features = ID3ContinuousFeatures._continuous_features(features)
         chosen_feature, class_one, class_two = select_feature(examples)
-        assert chosen_feature != 0
+        assert chosen_feature != 0  # TODO: Delete
 
         if class_one.size == 0 or class_two.size == 0:  # all the features are same- noise
             return 0, [], majority_class
 
         # create subtrees fits to the chosen_feature
         subtrees = [ID3ContinuousFeatures._tdidt_algorithm(np.delete(class_one, chosen_feature, 1),
-                                                           np.delete(features, chosen_feature-1),
+                                                           np.delete(features, chosen_feature - 1),
                                                            majority_class,
                                                            select_feature),
 
                     ID3ContinuousFeatures._tdidt_algorithm(np.delete(class_two, chosen_feature, 1),
-                                                           np.delete(features, chosen_feature-1),
+                                                           np.delete(features, chosen_feature - 1),
                                                            majority_class,
                                                            select_feature)]
 
-        return features[chosen_feature-1], subtrees, majority_class
+        return features[chosen_feature - 1], subtrees, majority_class
 
     @staticmethod
     def _max_ig(examples: Examples) -> Tuple[int, Examples, Examples]:
@@ -104,7 +104,7 @@ class ID3ContinuousFeatures:
 
         return argmax_ig, max_class_one, max_class_two
 
-    #@staticmethod
+    # @staticmethod
     # def _continuous_features(features: Features) -> Features:
     #     print(features)
     #     continuous_features = []
@@ -149,7 +149,7 @@ class ID3ContinuousFeatures:
         elif num_true < len(examples) - num_true:
             return 0
         else:
-            return 1  # TODO: what about tie?
+            return randint(0, 1)
 
     @staticmethod
     def _check_consistent_node(examples: Examples, c: int) -> bool:
@@ -174,70 +174,23 @@ class ID3ContinuousFeatures:
 
         return -(p_true * log2(p_true) + p_false * log2(p_false))
 
+    @staticmethod
+    def _test_example(classifier: Classifier, example: Examples) -> int:
+        # assume classifier seems like: ( chosen_feature, [children: true, false], classification)
+        if len(classifier[1]) == 0:  # if children == []: take classification
+            return classifier[2]
+
+        if example[classifier[0]]:
+            return ID3ContinuousFeatures._test_example(classifier[1][0], example)
+        return ID3ContinuousFeatures._test_example(classifier[1][1], example)
+
 
 """"""""""""""""""""""""""""""""""""""""""" Main """""""""""""""""""""""""""""""""""""""""""
 
 
-def create_test(new_path: str, num_examples: int, num_features: int):
-    temp_path = "./test_csv/temp.csv"
-    actual_path = "./test_csv/"+new_path+".csv"
-    df = pd.DataFrame([["M" if randint(0,1) == 1 else "B"] + [randint(0,1) for _ in range(num_features)] for _ in range(num_examples)])
-    df.to_csv(temp_path)
-
-    row_count = 0
-    with open(temp_path, "r") as source:
-        reader = csv.reader(source)
-        with open(actual_path, "w", newline='') as result:
-            writer = csv.writer(result)
-            for row in reader:
-                row_count += 1
-                for col_index in [0]:
-                    del row[col_index]
-                writer.writerow(row)
-
-    os.remove(temp_path)
-    return actual_path
-
-
-def monster_test(repeat: int, examples_num: int, features_num: int):
-    try:
-        temp_path = "try"
-        for successful_test in range(1, repeat+1,):
-            ID3ContinuousFeatures.get_classify(create_test(temp_path, examples_num, features_num))
-            print(f'{successful_test} successful test was passed')
-        os.remove("./test_csv/try.csv")
-    except:
-        print(f'{successful_test} test threw exception! Tests were failed!')
-
-
-
-def test(path):
-    classifier = ID3ContinuousFeatures.get_classify(path)
-    print(classifier)
-
-
 def main():
-    monster_test(100,1000,1000)
-    #test(create_test("try", 7,7))
-    #test("./test_csv/binary_all_noise.csv")
+    pass
 
 
 if __name__ == "__main__":
     main()
-
-
-# TODO: Delete
-def get_examples_and_features_from_csv(path: str) -> Tuple[Examples, Examples]:
-    data_frame = pd.read_csv(filepath_or_buffer=path, sep=",")
-
-    feature_num = 0
-    examples = []
-    features = []
-    for row_in_df in data_frame.values:
-        row = list(row_in_df)
-        examples.append((feature_num, row[0]))
-        del row[0]
-        features.append((feature_num, row))
-        feature_num += 1
-
-    return np.array(examples), np.array(features)
