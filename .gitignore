@@ -1,2 +1,5 @@
 .idea/
 __pycache__/
+test_csv/test.csv
+test_csv/train.csv
+test_csv/try.csv

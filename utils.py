@@ -1,3 +1,6 @@
+"""
+Utils For Project
+"""
 #TODO: Delete
 from random import randint
 import csv
@@ -13,7 +16,7 @@ Examples = np.array
 Features = np.array
 
 
-def get_examples_from_csv(path: str) -> Tuple[Examples, Features]:
+def get_full_examples_from_csv(path: str) -> Tuple[Examples, Features]:
     data_frame = pd.read_csv(filepath_or_buffer=path, sep=",")
     examples = []
     for row in data_frame.values:
@@ -21,7 +24,15 @@ def get_examples_from_csv(path: str) -> Tuple[Examples, Features]:
         example[0] = 1 if example[0] == "M" else 0
         examples.append(example)
 
-    return np.array(examples), np.array([i+1 for i in range(len(np.transpose(examples))-1)])
+    return np.array(examples), np.array([i for i in range(1, len(data_frame.columns)+1)])
+
+
+def get_generator_examples_from_csv(path: str) -> Tuple[Examples, Features]:
+    data_frame = pd.read_csv(filepath_or_buffer=path, sep=",")
+    for row in data_frame.values:
+        example = list(row)
+        example[0] = 1 if example[0] == "M" else 0
+        yield example
 
 
 """"""""""""""""""""""""""""""""""""""""""" Tests """""""""""""""""""""""""""""""""""""""""""
@@ -68,14 +79,14 @@ def classifier_test(path):
 
 def learn_test(path):
     actual_path = "./test_csv/" + path + ".csv"
-    learn_result = ID3ContinuousFeatures.learn(actual_path, actual_path) == 1
+    learn_result = ID3ContinuousFeatures.learn_without_pruning(actual_path, actual_path) == 1
     print(learn_result)
     assert learn_result == 1
 
 
 def accuracy_test():
-    print(ID3ContinuousFeatures.learn("./test_csv/train.csv", "./test_csv/test.csv"))
+    print(ID3ContinuousFeatures.learn_without_pruning("./test_csv/train.csv", "./test_csv/test.csv"))
 
 
 def random_accuracy_test():
-    print(ID3ContinuousFeatures.learn(create_test(1000, 1000, "train"), create_test(100, 1000, "test")))
+    print(ID3ContinuousFeatures.learn_without_pruning(create_test(1000, 1000, "train"), create_test(100, 1000, "test")))
