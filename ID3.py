@@ -8,6 +8,11 @@ import pandas as pd
 import numpy as np
 from math import log2
 
+#TODO: Delete
+from random import randint
+import csv
+import os
+
 Examples = np.array
 Features = np.array
 Children = list
@@ -15,23 +20,6 @@ Classifier = Tuple[int, Children, int]
 
 TRAIN_PATH = "train.csv"
 TEST_PATH = "test.csv"
-
-
-# TODO: Delete
-def get_examples_and_features_from_csv(path: str) -> Tuple[Examples, Examples]:
-    data_frame = pd.read_csv(filepath_or_buffer=path, sep=",")
-
-    feature_num = 0
-    examples = []
-    features = []
-    for row_in_df in data_frame.values:
-        row = list(row_in_df)
-        examples.append((feature_num, row[0]))
-        del row[0]
-        features.append((feature_num, row))
-        feature_num += 1
-
-    return np.array(examples), np.array(features)
 
 
 def get_examples_from_csv(path: str) -> Tuple[Examples, Features]:
@@ -76,6 +64,9 @@ class ID3ContinuousFeatures:
         chosen_feature, class_one, class_two = select_feature(examples)
         assert chosen_feature != 0
 
+        if class_one.size == 0 or class_two.size == 0:  # all the features are same- noise
+            return 0, [], majority_class
+
         # create subtrees fits to the chosen_feature
         subtrees = [ID3ContinuousFeatures._tdidt_algorithm(np.delete(class_one, chosen_feature, 1),
                                                            np.delete(features, chosen_feature-1),
@@ -99,17 +90,17 @@ class ID3ContinuousFeatures:
         argmax_ig = 0
 
         for feature in range(1, len(np.transpose(examples))):
-            class_one, class_two = ID3ContinuousFeatures._divide_by_feature(examples, feature)
-            son1_entropy = ID3ContinuousFeatures._entropy(class_one)
-            son2_entropy = ID3ContinuousFeatures._entropy(class_two)
-            ig = father_entropy - (son1_entropy * (len(class_one) / len(examples)) + son2_entropy * (
-                    len(class_two) / len(examples)))
+            class_true, class_false = ID3ContinuousFeatures._divide_by_feature(examples, feature)
+            son1_true_entropy = ID3ContinuousFeatures._entropy(class_true)
+            son2_false_entropy = ID3ContinuousFeatures._entropy(class_false)
+            ig = father_entropy - (son1_true_entropy * (len(class_true) / len(examples)) + son2_false_entropy * (
+                    len(class_false) / len(examples)))
 
             if max_ig <= ig:
                 max_ig = ig
                 argmax_ig = feature
-                max_class_one = class_one
-                max_class_two = class_two
+                max_class_one = class_true
+                max_class_two = class_false
 
         return argmax_ig, max_class_one, max_class_two
 
@@ -137,17 +128,17 @@ class ID3ContinuousFeatures:
     ######### Helper Functions in class #########
     @staticmethod
     def _divide_by_feature(examples: Examples, feature: int) -> Tuple[Examples, Examples]:
-        class_one = []
-        class_two = []
+        class_true = []
+        class_false = []
         example_num = 0
         for i in (examples.transpose())[feature]:
             if i == 1:
-                class_one.append(examples[example_num])
+                class_true.append(examples[example_num])
             elif i == 0:
-                class_two.append(examples[example_num])
+                class_false.append(examples[example_num])
             example_num += 1
 
-        return np.array(class_one), np.array(class_two)
+        return np.array(class_true), np.array(class_false)
 
     @staticmethod
     def _majority_class(examples: Examples) -> int:
@@ -170,6 +161,8 @@ class ID3ContinuousFeatures:
 
     @staticmethod
     def _entropy(examples: Examples) -> float:
+        if examples.size == 0:
+            return 0
         num_true = np.count_nonzero((examples.transpose())[0])
         p_true = num_true / len(examples)
         p_false = 1 - p_true
@@ -185,15 +178,66 @@ class ID3ContinuousFeatures:
 """"""""""""""""""""""""""""""""""""""""""" Main """""""""""""""""""""""""""""""""""""""""""
 
 
-def test():
-    csv_path = "./test_csv/small_binary.csv"
-    classifier = ID3ContinuousFeatures.get_classify(csv_path)
+def create_test(new_path: str, num_examples: int, num_features: int):
+    temp_path = "./test_csv/temp.csv"
+    actual_path = "./test_csv/"+new_path+".csv"
+    df = pd.DataFrame([["M" if randint(0,1) == 1 else "B"] + [randint(0,1) for _ in range(num_features)] for _ in range(num_examples)])
+    df.to_csv(temp_path)
+
+    row_count = 0
+    with open(temp_path, "r") as source:
+        reader = csv.reader(source)
+        with open(actual_path, "w", newline='') as result:
+            writer = csv.writer(result)
+            for row in reader:
+                row_count += 1
+                for col_index in [0]:
+                    del row[col_index]
+                writer.writerow(row)
+
+    os.remove(temp_path)
+    return actual_path
+
+
+def monster_test(repeat: int, examples_num: int, features_num: int):
+    try:
+        temp_path = "try"
+        for successful_test in range(1, repeat+1,):
+            ID3ContinuousFeatures.get_classify(create_test(temp_path, examples_num, features_num))
+            print(f'{successful_test} successful test was passed')
+        os.remove("./test_csv/try.csv")
+    except:
+        print(f'{successful_test} test threw exception! Tests were failed!')
+
+
+
+def test(path):
+    classifier = ID3ContinuousFeatures.get_classify(path)
     print(classifier)
 
 
 def main():
-    test()
+    monster_test(100,1000,1000)
+    #test(create_test("try", 7,7))
+    #test("./test_csv/binary_all_noise.csv")
 
 
 if __name__ == "__main__":
     main()
+
+
+# TODO: Delete
+def get_examples_and_features_from_csv(path: str) -> Tuple[Examples, Examples]:
+    data_frame = pd.read_csv(filepath_or_buffer=path, sep=",")
+
+    feature_num = 0
+    examples = []
+    features = []
+    for row_in_df in data_frame.values:
+        row = list(row_in_df)
+        examples.append((feature_num, row[0]))
+        del row[0]
+        features.append((feature_num, row))
+        feature_num += 1
+
+    return np.array(examples), np.array(features)
