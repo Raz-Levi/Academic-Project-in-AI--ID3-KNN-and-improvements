@@ -5,7 +5,6 @@ Utils For Project
 from random import randint
 import csv
 import os
-from ID3 import *
 
 import pandas as pd
 import numpy as np
@@ -59,34 +58,34 @@ def create_test(num_examples: int, num_features: int, new_path: str = "try"):
     return actual_path
 
 
-def monster_test(repeat: int, examples_num: int, features_num: int):
-    failed_test = 0
-    try:
-        temp_path = "try"
-        for successful_test in range(1, repeat+1,):
-            ID3ContinuousFeatures.get_classifier(create_test(temp_path, examples_num, features_num))
-            print(f'{successful_test} successful test was passed')
-            failed_test +=1
-        os.remove("./test_csv/try.csv")
-    except:
-        print(f'{failed_test} test threw exception! Tests were failed!')
-
-
-def classifier_test(path):
-    classifier = ID3ContinuousFeatures.get_classifier(path)
-    print(classifier)
-
-
-def learn_test(path):
-    actual_path = "./test_csv/" + path + ".csv"
-    learn_result = ID3ContinuousFeatures.learn_without_pruning(actual_path, actual_path) == 1
-    print(learn_result)
-    assert learn_result == 1
-
-
-def accuracy_test():
-    print(ID3ContinuousFeatures.learn_without_pruning("./test_csv/train.csv", "./test_csv/test.csv"))
-
-
-def random_accuracy_test():
-    print(ID3ContinuousFeatures.learn_without_pruning(create_test(1000, 1000, "train"), create_test(100, 1000, "test")))
+# def monster_test(repeat: int, examples_num: int, features_num: int):
+#     failed_test = 0
+#     try:
+#         temp_path = "try"
+#         for successful_test in range(1, repeat+1,):
+#             ID3ContinuousFeatures._get_classifier(create_test(temp_path, examples_num, features_num))
+#             print(f'{successful_test} successful test was passed')
+#             failed_test +=1
+#         os.remove("./test_csv/try.csv")
+#     except:
+#         print(f'{failed_test} test threw exception! Tests were failed!')
+#
+#
+# def classifier_test(path):
+#     classifier = ID3ContinuousFeatures._get_classifier(path)
+#     print(classifier)
+#
+#
+# def learn_test(path):
+#     actual_path = "./test_csv/" + path + ".csv"
+#     learn_result = ID3ContinuousFeatures.learn_without_pruning(actual_path, actual_path) == 1
+#     print(learn_result)
+#     assert learn_result == 1
+#
+#
+# def accuracy_test():
+#     print(ID3ContinuousFeatures.learn_without_pruning("./test_csv/train.csv", "./test_csv/test.csv"))
+#
+#
+# def random_accuracy_test():
+#     print(ID3ContinuousFeatures.learn_without_pruning(create_test(1000, 1000, "train"), create_test(100, 1000, "test")))

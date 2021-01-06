@@ -2,7 +2,6 @@
 ID3 Algorithm
 """
 import numpy as np
-import matplotlib.pyplot as plt
 from utils import get_full_examples_from_csv, get_generator_examples_from_csv
 from sklearn.model_selection import KFold
 from math import log2
@@ -10,9 +9,6 @@ from random import randint
 
 from typing import Tuple
 from typing import Callable
-
-#TODO: Delete
-from utils import create_test
 
 Examples = np.array
 Features = np.array
@@ -32,27 +28,41 @@ class ID3ContinuousFeatures:
     @staticmethod
     def learn_without_pruning(train_path: str, test_path: str) -> float:
         train_examples, train_features = get_full_examples_from_csv(train_path)
-        return ID3ContinuousFeatures.get_accuracy(
-            ID3ContinuousFeatures.get_classifier(train_examples, train_features),
+        return ID3ContinuousFeatures._get_accuracy(
+            ID3ContinuousFeatures._get_classifier(train_examples, train_features),
             get_generator_examples_from_csv(test_path))
 
     @staticmethod
     def learn_with_pruning(train_path: str, test_path: str) -> float:
-        M, train_examples, train_features = experiment(train_path, True)  # TODO: set diffrent if we dont want graph
+        train_examples, train_features = get_full_examples_from_csv(train_path)
+        folds = KFold(n_splits=N_SPLIT, shuffle=SHUFFLE, random_state=RANDOM_STATE)
+        M = -np.inf
+        m_accuracy = 0
 
-        return ID3ContinuousFeatures.get_accuracy(
-            ID3ContinuousFeatures.get_classifier(train_examples, train_features, M),
+        for m_value in (i for i in range(1, 6)):  # TODO: which M values should I choose? Random?
+            accuracy = 0
+            for train_fold, test_fold in folds.split(train_examples):
+                classifier = ID3ContinuousFeatures._get_classifier(np.take(train_examples, train_fold, 0),
+                                                                   train_features, m_value)
+                accuracy += ID3ContinuousFeatures._get_accuracy(classifier, np.take(train_examples, test_fold, 0))
+
+            if m_accuracy <= accuracy / N_SPLIT:
+                m_accuracy = accuracy / N_SPLIT
+                M = m_value
+
+        return ID3ContinuousFeatures._get_accuracy(
+            ID3ContinuousFeatures._get_classifier(train_examples, train_features, M),
             get_generator_examples_from_csv(test_path))
 
     ######### Helper Functions for ID3 Algorithm #########
     @staticmethod
-    def get_classifier(examples: Examples, features: Features, M: int = 1) -> Classifier:
+    def _get_classifier(examples: Examples, features: Features, M: int = 1) -> Classifier:
         return ID3ContinuousFeatures._tdidt_algorithm(examples, features,
                                                       ID3ContinuousFeatures._majority_class(examples),
                                                       ID3ContinuousFeatures._max_ig, M)
 
     @staticmethod
-    def get_accuracy(classifier: Classifier, examples: Examples) -> float:
+    def _get_accuracy(classifier: Classifier, examples: Examples) -> float:
         true_pos, true_neg = 0, 0
         test_examples_amount = 0
         for example in examples:
@@ -77,9 +87,6 @@ class ID3ContinuousFeatures:
         majority_class = ID3ContinuousFeatures._majority_class(examples)
         if len(examples) <= M or features.size == 0 or ID3ContinuousFeatures._check_consistent_node(examples,
                                                                                                     majority_class):
-            if len(examples) <= M and M!=1: # TODO: Delete
-                print(f'{M}: len(examples) <= M') # TODO: Delete
-
             return 0, [], majority_class
 
         # main decision
@@ -205,54 +212,3 @@ class ID3ContinuousFeatures:
         if example[classifier[0]]:
             return ID3ContinuousFeatures._test_example(classifier[1][0], example)
         return ID3ContinuousFeatures._test_example(classifier[1][1], example)
-
-
-""""""""""""""""""""""""""""""""""""""""""" Main """""""""""""""""""""""""""""""""""""""""""
-
-
-def experiment(train_path: str = TRAIN_PATH, print_graph: bool = True) -> Tuple[int, Examples, Features]:
-    """
-        For using this function and print the graph, you may insert the path for train csv file and set 'print_graph' param
-        for deciding to print the graph or not. In default, the function will print the graph for data in "./train.csv".
-
-        @:param train_path(str): path for train data, default value: "./train.csv".
-        @:param print_graph(bool): if true, the function will print the graph, otherwise the function will not. default value: True
-        @:return the best M hyper-parameter, train examples and features (we don't want to read it again)
-    """
-    train_examples, train_features = get_full_examples_from_csv(train_path)
-    folds = KFold(n_splits=N_SPLIT, shuffle=SHUFFLE, random_state=RANDOM_STATE)
-    m_values = [i for i in range(2, 7)]
-    m_accuracy = []
-
-    for m_value in m_values:  # TODO: which M values should I choose? Random?
-        accuracy = 0
-        for train_fold, test_fold in folds.split(train_examples):
-            classifier = ID3ContinuousFeatures.get_classifier(np.take(train_examples, train_fold, 0), train_features, m_value)
-            accuracy += ID3ContinuousFeatures.get_accuracy(classifier, np.take(train_examples, test_fold, 0))
-        m_accuracy.append(accuracy / N_SPLIT)
-
-    if print_graph:
-        plt.plot(m_values, m_accuracy)
-        plt.ylabel('Average accuracy')
-        plt.xlabel('M values')
-        plt.show()
-
-        print(m_values[int(np.argmax(m_accuracy))]) # TODO: Delete
-    assert len(m_values) == N_SPLIT  # TODO: Delete
-
-    return m_values[int(np.argmax(m_accuracy))], train_examples, train_features
-
-
-def pruning_test():
-    create_test(100,1000, "train")
-    create_test(100,1000, "test")
-    print(ID3ContinuousFeatures.learn_without_pruning("./test_csv/train.csv", "./test_csv/test.csv"))
-    print(ID3ContinuousFeatures.learn_with_pruning("./test_csv/train.csv", "./test_csv/test.csv"))
-
-
-def main():
-    pruning_test()
-
-
-if __name__ == "__main__":
-    main()

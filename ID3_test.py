@@ -46,6 +46,14 @@ class TestID3(unittest.TestCase):
         os.remove("./test_csv/train.csv")
         os.remove("./test_csv/test.csv")
 
+    def test_pruning(self):
+        create_test(100, 100, "train")
+        create_test(10, 100, "test")
+        print(ID3ContinuousFeatures.learn_without_pruning("./test_csv/train.csv", "./test_csv/test.csv"))
+        print(ID3ContinuousFeatures.learn_with_pruning("./test_csv/train.csv", "./test_csv/test.csv"))
+        os.remove("./test_csv/train.csv")
+        os.remove("./test_csv/test.csv")
+
     # def test_monster_accuracy(self):
     #     accuracy = []
     #     for _ in range(10):
