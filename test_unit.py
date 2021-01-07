@@ -110,6 +110,11 @@ class TestKNN(unittest.TestCase):
         test_path = "./test.csv"
         self.assertTrue(KNN.learn(train_path, test_path) == 0.9734513274336283)
 
+    def test_loss(self):
+        train_path = "./train.csv"
+        test_path = "./test.csv"
+        self.assertTrue(KNN.learn_and_get_loss(train_path, test_path) == 0.018584070796460177)
+
 
 if __name__ == '__main__':
     unittest.main()

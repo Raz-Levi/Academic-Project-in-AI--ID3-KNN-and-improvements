@@ -15,6 +15,12 @@ class KNN(object):
         return KNN.get_accuracy(train_examples, test_examples, k=KNN.experiment(train_examples, do_print_graph))
 
     @staticmethod
+    def learn_and_get_loss(train_path: str, test_path, do_print_graph: bool = False) -> float:
+        train_examples = KNN._minmax_normalize(get_full_examples_from_csv(train_path, get_features=False)[0])
+        test_examples = KNN._minmax_normalize(get_generator_examples_from_csv(test_path))
+        return KNN.get_loss(train_examples, test_examples, k=KNN.experiment(train_examples, do_print_graph))
+
+    @staticmethod
     def get_accuracy(train_examples: Examples, test_examples: Examples, k: int) -> float:
         true_pos, true_neg = 0, 0
         test_examples_amount = 0
@@ -27,6 +33,20 @@ class KNN(object):
             test_examples_amount += 1
 
         return (true_pos + true_neg) / test_examples_amount
+
+    @staticmethod
+    def get_loss(train_examples: Examples, test_examples: Examples, k: int) -> float:
+        fp, fn = 0, 0
+        test_examples_amount = 0
+        for example in test_examples:
+            example_result = KNN._classify_one(train_examples, example, k)
+            if example_result == 1 and example[0] == 0:
+                fp += 1
+            elif example_result == 0 and example[0] == 1:
+                fn += 1
+            test_examples_amount += 1
+
+        return (0.1*fp + fn) / test_examples_amount
 
     ######### Helper Functions for KNN Algorithm #########
     @staticmethod
