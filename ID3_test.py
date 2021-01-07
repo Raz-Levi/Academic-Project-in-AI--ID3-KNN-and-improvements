@@ -8,15 +8,15 @@ class TestID3(unittest.TestCase):
 
     def test_binary_one_divide(self):
         test_path = "./test_csv/binary_one_divide.csv"
-        self.assertTrue(ID3ContinuousFeatures.learn_without_pruning(test_path, test_path))
+        self.assertTrue(ID3ContinuousFeatures.learn_without_pruning(test_path, test_path) == 1)
 
     def test_small_binary(self):
         test_path = "./test_csv/small_binary.csv"
-        self.assertTrue(ID3ContinuousFeatures.learn_without_pruning(test_path, test_path))
+        self.assertTrue(ID3ContinuousFeatures.learn_without_pruning(test_path, test_path) == 1)
 
     def test_binary_check_ig(self):
         test_path = "./test_csv/binary_check_ig.csv"
-        self.assertTrue(ID3ContinuousFeatures.learn_without_pruning(test_path, test_path))
+        self.assertTrue(ID3ContinuousFeatures.learn_without_pruning(test_path, test_path) == 1)
 
     def test_binary_check_noise(self):
         test_path = "./test_csv/binary_check_noise.csv"
@@ -24,7 +24,7 @@ class TestID3(unittest.TestCase):
 
     def test_binary_random_test(self):
         test_path = "./test_csv/random_test.csv"
-        self.assertTrue(ID3ContinuousFeatures.learn_without_pruning(test_path, test_path))
+        self.assertTrue(ID3ContinuousFeatures.learn_without_pruning(test_path, test_path) == 1)
 
     def test_binary_all_noise(self):
         test_path = "./test_csv/binary_all_noise.csv"
@@ -32,13 +32,13 @@ class TestID3(unittest.TestCase):
 
     def test_randomly(self):
         test_path = create_test(1000, 1000)
-        self.assertTrue(ID3ContinuousFeatures.learn_without_pruning(test_path, test_path))
+        self.assertTrue(ID3ContinuousFeatures.learn_without_pruning(test_path, test_path) == 1)
         os.remove(test_path)
 
     def test_monster(self):
         for _ in range(3):
             test_path = create_test(100, 100)
-            self.assertTrue(ID3ContinuousFeatures.learn_without_pruning(test_path, test_path))
+            self.assertTrue(ID3ContinuousFeatures.learn_without_pruning(test_path, test_path) == 1)
         os.remove("./test_csv/try.csv")
 
     def test_accuracy(self):

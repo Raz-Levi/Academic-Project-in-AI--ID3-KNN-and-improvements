@@ -24,15 +24,18 @@ N_SPLIT = 5
 SHUFFLE = True
 RANDOM_STATE = 316579275
 
-def get_full_examples_from_csv(path: str) -> Tuple[Examples, Features]:
+
+def get_full_examples_from_csv(path: str, get_features: bool = True) -> Tuple[Examples, Features]:
     data_frame = pd.read_csv(filepath_or_buffer=path, sep=",")
     examples = []
     for row in data_frame.values:
         example = list(row)
         example[0] = 1 if example[0] == "M" else 0
         examples.append(example)
-
-    return np.array(examples), np.array([i for i in range(1, len(data_frame.columns)+1)])
+    examples = np.array(examples)
+    if get_features:
+        return examples, np.array([i for i in range(1, len(data_frame.columns))])
+    return examples, ()
 
 
 def get_generator_examples_from_csv(path: str) -> Examples:
@@ -41,6 +44,12 @@ def get_generator_examples_from_csv(path: str) -> Examples:
         example = list(row)
         example[0] = 1 if example[0] == "M" else 0
         yield example
+
+def print_graph(values: list, accuracy: list):
+    plt.plot(values, accuracy)
+    plt.ylabel('Average accuracy')
+    plt.xlabel('M values')
+    plt.show()
 
 
 """"""""""""""""""""""""""""""""""""""""""" Tests """""""""""""""""""""""""""""""""""""""""""

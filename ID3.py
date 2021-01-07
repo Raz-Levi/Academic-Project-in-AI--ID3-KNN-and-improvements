@@ -56,9 +56,6 @@ class ID3ContinuousFeatures(object):
         majority_class = ID3ContinuousFeatures._majority_class(examples)
         if len(examples) <= M or features.size == 0 or ID3ContinuousFeatures._check_consistent_node(examples,
                                                                                                     majority_class):
-            if len(examples) <= M != 1:  # TODO: Delete
-                print(f'{M}: len(examples) <= M') # TODO: Delete
-
             return 0, [], majority_class
 
         # main decision
@@ -189,13 +186,13 @@ class ID3ContinuousFeatures(object):
 """"""""""""""""""""""""""""""""""""""""""" Main """""""""""""""""""""""""""""""""""""""""""
 
 
-def experiment(train_path: str = TRAIN_PATH, print_graph: bool = True) -> Tuple[int, Examples, Features]:
+def experiment(train_path: str = TRAIN_PATH, do_print_graph: bool = True) -> Tuple[int, Examples, Features]:
     """
-        For using this function and print the graph, you may insert the path for train csv file and set 'print_graph' param
+        For using this function and print the graph, you may insert the path for train csv file and set 'do_print_graph' param
         for deciding to print the graph or not. In default, the function will print the graph for data in "./train.csv".
 
         @:param train_path(str): path for train data, default value: "./train.csv".
-        @:param print_graph(bool): if true, the function will print the graph, otherwise the function will not. default value: True
+        @:param do_print_graph(bool): if true, the function will print the graph, otherwise the function will not. default value: True
         @:return the best M hyper-parameter, train examples and features (we don't want to read it again)
     """
     train_examples, train_features = get_full_examples_from_csv(train_path)
@@ -203,20 +200,16 @@ def experiment(train_path: str = TRAIN_PATH, print_graph: bool = True) -> Tuple[
     m_values = [i for i in range(2, 7)]
     m_accuracy = []
 
-    for m_value in m_values:  # TODO: which M values should I choose? Random?
+    for m_value in m_values:
         accuracy = 0
         for train_fold, test_fold in folds.split(train_examples):
             classifier = ID3ContinuousFeatures.get_classifier(np.take(train_examples, train_fold, 0), train_features, m_value)
             accuracy += ID3ContinuousFeatures.get_accuracy(classifier, np.take(train_examples, test_fold, 0))
         m_accuracy.append(accuracy / N_SPLIT)
 
-    if print_graph:
-        plt.plot(m_values, m_accuracy)
-        plt.ylabel('Average accuracy')
-        plt.xlabel('M values')
-        plt.show()
+    if do_print_graph:
+        print_graph(m_values, m_accuracy)
 
-        print(m_values[int(np.argmax(m_accuracy))]) # TODO: Delete
     assert len(m_values) == N_SPLIT  # TODO: Delete
 
     return m_values[int(np.argmax(m_accuracy))], train_examples, train_features
