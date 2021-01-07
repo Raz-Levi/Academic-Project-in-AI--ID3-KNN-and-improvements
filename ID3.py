@@ -197,7 +197,7 @@ def experiment(train_path: str = TRAIN_PATH, do_print_graph: bool = True) -> Tup
     """
     train_examples, train_features = get_full_examples_from_csv(train_path)
     folds = KFold(n_splits=N_SPLIT, shuffle=SHUFFLE, random_state=RANDOM_STATE)
-    m_values = [i for i in range(2, 7)]
+    m_values = [i for i in range(2, NUM_FOR_CHOOSE+2)]
     m_accuracy = []
 
     for m_value in m_values:
@@ -208,7 +208,7 @@ def experiment(train_path: str = TRAIN_PATH, do_print_graph: bool = True) -> Tup
         m_accuracy.append(accuracy / N_SPLIT)
 
     if do_print_graph:
-        print_graph(m_values, m_accuracy)
+        print_graph(m_values, m_accuracy, 'M')
 
     assert len(m_values) == N_SPLIT  # TODO: Delete
 
@@ -216,8 +216,8 @@ def experiment(train_path: str = TRAIN_PATH, do_print_graph: bool = True) -> Tup
 
 
 def pruning_test():
-    create_test(100,1000, "train")
-    create_test(100,1000, "test")
+    create_binary_test(100, 1000, "train")
+    create_binary_test(100, 1000, "test")
     print(ID3ContinuousFeatures.learn_without_pruning("./test_csv/train.csv", "./test_csv/test.csv"))
     print(ID3ContinuousFeatures.learn_with_pruning("./test_csv/train.csv", "./test_csv/test.csv"))
 

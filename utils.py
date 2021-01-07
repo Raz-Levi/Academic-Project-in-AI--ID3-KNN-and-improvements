@@ -23,6 +23,7 @@ TEST_PATH = "./test.csv"
 N_SPLIT = 5
 SHUFFLE = True
 RANDOM_STATE = 316579275
+NUM_FOR_CHOOSE = 5
 
 
 def get_full_examples_from_csv(path: str, get_features: bool = True) -> Tuple[Examples, Features]:
@@ -45,17 +46,18 @@ def get_generator_examples_from_csv(path: str) -> Examples:
         example[0] = 1 if example[0] == "M" else 0
         yield example
 
-def print_graph(values: list, accuracy: list):
+
+def print_graph(values: list, accuracy: list, char: str):
     plt.plot(values, accuracy)
     plt.ylabel('Average accuracy')
-    plt.xlabel('M values')
+    plt.xlabel(f'{char} values')
     plt.show()
 
 
 """"""""""""""""""""""""""""""""""""""""""" Tests """""""""""""""""""""""""""""""""""""""""""
 
 
-def create_test(num_examples: int, num_features: int, new_path: str = "try"):
+def create_binary_test(num_examples: int, num_features: int, new_path: str = "try"):
     temp_path = "./test_csv/temp.csv"
     actual_path = "./test_csv/"+new_path+".csv"
     df = pd.DataFrame([["M" if randint(0,1) == 1 else "B"] + [randint(0,1) for _ in range(num_features)] for _ in range(num_examples)])
@@ -74,6 +76,29 @@ def create_test(num_examples: int, num_features: int, new_path: str = "try"):
 
     os.remove(temp_path)
     return actual_path
+
+
+def create_num_test(num_examples: int, num_features: int, new_path: str = "try"):
+    temp_path = "./test_csv/temp.csv"
+    actual_path = "./test_csv/"+new_path+".csv"
+    df = pd.DataFrame([["M" if randint(0,1) == 1 else "B"] + [randint(0,100) / randint(1,100) for _ in range(num_features)] for _ in range(num_examples)])
+    df.to_csv(temp_path)
+
+    row_count = 0
+    with open(temp_path, "r") as source:
+        reader = csv.reader(source)
+        with open(actual_path, "w", newline='') as result:
+            writer = csv.writer(result)
+            for row in reader:
+                row_count += 1
+                for col_index in [0]:
+                    del row[col_index]
+                writer.writerow(row)
+
+    os.remove(temp_path)
+    return actual_path
+
+
 
 
 # def monster_test(repeat: int, examples_num: int, features_num: int):

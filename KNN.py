@@ -9,10 +9,10 @@ from bisect import insort
 
 class KNN(object):
     @staticmethod
-    def learn(train_path: str, test_path, do_print_graph: bool = True) -> float:
+    def learn(train_path: str, test_path, do_print_graph: bool = False) -> float:
         train_examples = KNN._minmax_normalize(get_full_examples_from_csv(train_path, get_features=False)[0])
         test_examples = KNN._minmax_normalize(get_generator_examples_from_csv(test_path))
-        return KNN.get_accuracy(train_examples, test_examples, k=experiment(train_examples, do_print_graph))
+        return KNN.get_accuracy(train_examples, test_examples, k=KNN.experiment(train_examples, do_print_graph))
 
     @staticmethod
     def get_accuracy(train_examples: Examples, test_examples: Examples, k: int) -> float:
@@ -49,13 +49,13 @@ class KNN(object):
 
         votes_num = 0
         vote_true = 0
-        for vote in reversed(distances):
+        for vote in distances:
             if votes_num >= k:
                 break
             if vote == 1:
                 vote_true += 1
             votes_num += 1
-        return 1 if vote_true >= min(k, len(distances)) - vote_true else 0  # TODO: what about tie?
+        return 1 if vote_true >= min(k, len(distances)) - vote_true else 0
 
     @staticmethod
     def _minmax_normalize(examples: Examples) -> Examples:
@@ -91,47 +91,46 @@ class KNN(object):
 
         return euclidean_distance ** 0.5
 
+    @staticmethod
+    def experiment(train_examples: Examples, do_print_graph: bool) -> int:
+        """
+            For using this function and print the graph, you may use 'KNN.learn' function and set 'do_print_graph' param
+            for deciding to print the graph or not. In default, the function will not print the graph.
 
-def experiment(train_examples: Examples, do_print_graph: bool) -> int:
-    """
-        For using this function and print the graph, you may use 'KNN.learn' function and set 'do_print_graph' param
-        for deciding to print the graph or not. In default, the function will print the graph.
+            @:param train_examples(np.array): the train examples.
+            @:param do_print_graph(bool): if true, the function will print the graph, otherwise the function will not.
+            @:return the best K.
+        """
+        folds = KFold(n_splits=N_SPLIT, shuffle=SHUFFLE, random_state=RANDOM_STATE)
+        k_values = [i for i in range(1, NUM_FOR_CHOOSE+1)] # assume len(train_examples) >= 5, because we can't KFold with n_split = 5
+        k_accuracy = []
 
-        @:param train_examples(np.array): the train examples.
-        @:param do_print_graph(bool): if true, the function will print the graph, otherwise the function will not.
-        @:return the best K.
-    """
-    folds = KFold(n_splits=N_SPLIT, shuffle=SHUFFLE, random_state=RANDOM_STATE)
-    k_values = [i for i in range(1, len(train_examples))]
-    k_accuracy = []
+        for k_value in k_values:
+            accuracy = 0
+            for train_fold, test_fold in folds.split(train_examples):
+                accuracy += KNN.get_accuracy(np.take(train_examples, train_fold, 0), np.take(train_examples, test_fold, 0), k_value)
+            k_accuracy.append(accuracy / N_SPLIT)
 
-    for k_value in k_values:
-        accuracy = 0
-        for train_fold, test_fold in folds.split(train_examples):
-            accuracy += KNN.get_accuracy(np.take(train_examples, train_fold, 0), np.take(train_examples, test_fold, 0), k_value)
-        k_accuracy.append(accuracy / N_SPLIT)
+        if do_print_graph:
+            print_graph(k_values, k_accuracy, 'K')
 
-    if do_print_graph:
-        print_graph(k_values, k_accuracy)
+        assert len(k_values) == N_SPLIT  # TODO: Delete
 
-        print(k_values[int(np.argmax(k_accuracy))])  # TODO: Delete
-    assert len(k_values) == N_SPLIT  # TODO: Delete
-
-    return k_values[int(np.argmax(k_accuracy))]
+        return k_values[int(np.argmax(k_accuracy))]
 
 
 """"""""""""""""""""""""""""""""""""""""""" Main """""""""""""""""""""""""""""""""""""""""""
 
 
-def do_test():
-    test_path = "./test_csv/nominal.csv"
-    accuracy = KNN.learn(test_path, test_path, False)
-    print(accuracy)
-    assert accuracy == 1
+# TODO: Delete!
+def learn_k(train_path: str, test_path) -> float:
+    train_examples = KNN._minmax_normalize(get_full_examples_from_csv(train_path, get_features=False)[0])
+    test_examples = KNN._minmax_normalize(get_generator_examples_from_csv(test_path))
+    return KNN.get_accuracy(train_examples, test_examples, 1)
 
 
 def main():
-    do_test()
+    print(KNN.learn(TRAIN_PATH, TEST_PATH))
 
 
 if __name__ == "__main__":
