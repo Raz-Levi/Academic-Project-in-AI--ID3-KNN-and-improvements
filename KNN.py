@@ -122,7 +122,7 @@ class KNN(object):
             @:return the best K.
         """
         folds = KFold(n_splits=N_SPLIT, shuffle=SHUFFLE, random_state=RANDOM_STATE)
-        k_values = [i for i in range(1, NUM_FOR_CHOOSE+1)] # assume len(train_examples) >= 5, because we can't KFold with n_split = 5
+        k_values = [i for i in range(1, NUM_FOR_CHOOSE+1)]  # assume len(train_examples) >= 5, because we can't KFold with n_split = 5
         k_accuracy = []
 
         for k_value in k_values:
@@ -134,19 +134,10 @@ class KNN(object):
         if do_print_graph:
             print_graph(k_values, k_accuracy, 'K')
 
-        assert len(k_values) == N_SPLIT  # TODO: Delete
-
         return k_values[int(np.argmax(k_accuracy))]
 
 
 """"""""""""""""""""""""""""""""""""""""""" Main """""""""""""""""""""""""""""""""""""""""""
-
-
-# TODO: Delete!
-def learn_k(train_path: str, test_path) -> float:
-    train_examples = KNN._minmax_normalize(get_full_examples_from_csv(train_path, get_features=False)[0])
-    test_examples = KNN._minmax_normalize(get_generator_examples_from_csv(test_path))
-    return KNN.get_accuracy(train_examples, test_examples, 1)
 
 
 def main():
