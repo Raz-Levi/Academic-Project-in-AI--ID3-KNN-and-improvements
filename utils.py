@@ -16,7 +16,7 @@ from typing import Callable
 Examples = np.array
 Features = np.array
 Children = list
-Classifier = Tuple[int, Children, int]
+Classifier = Tuple[Tuple[int, float], Examples, Examples]
 
 TRAIN_PATH = "./train.csv"
 TEST_PATH = "./test.csv"
