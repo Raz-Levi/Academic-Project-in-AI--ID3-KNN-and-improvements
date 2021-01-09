@@ -9,13 +9,13 @@ from bisect import insort
 
 class KNN(object):
     @staticmethod
-    def learn(train_path: str, test_path, do_print_graph: bool = False) -> float:
+    def classify(train_path: str, test_path, do_print_graph: bool = False) -> float:
         train_examples = KNN._minmax_normalize(get_full_examples_from_csv(train_path, get_features=False)[0])
         test_examples = KNN._minmax_normalize(get_generator_examples_from_csv(test_path))
         return KNN.get_accuracy(train_examples, test_examples, k=KNN.experiment(train_examples, do_print_graph))
 
     @staticmethod
-    def learn_and_get_loss(train_path: str, test_path, do_print_graph: bool = False) -> float:
+    def classify_and_get_loss(train_path: str, test_path, do_print_graph: bool = False) -> float:
         train_examples = KNN._minmax_normalize(get_full_examples_from_csv(train_path, get_features=False)[0])
         test_examples = KNN._minmax_normalize(get_generator_examples_from_csv(test_path))
         return KNN.get_loss(train_examples, test_examples, k=KNN.experiment(train_examples, do_print_graph))
@@ -114,8 +114,8 @@ class KNN(object):
     @staticmethod
     def experiment(train_examples: Examples, do_print_graph: bool) -> int:
         """
-            For using this function and print the graph, you may use 'KNN.learn' function and set 'do_print_graph' param
-            for deciding to print the graph or not. In default, the function will not print the graph.
+            For using this function and print the graph, you may use 'KNN.classify' function and set 'do_print_graph' param
+            to True. In default, the function will not print the graph.
 
             @:param train_examples(np.array): the train examples.
             @:param do_print_graph(bool): if true, the function will print the graph, otherwise the function will not.
@@ -134,14 +134,23 @@ class KNN(object):
         if do_print_graph:
             print_graph(k_values, k_accuracy, 'K')
 
+        assert len(k_values) == N_SPLIT  # TODO: Delete
+
         return k_values[int(np.argmax(k_accuracy))]
 
 
 """"""""""""""""""""""""""""""""""""""""""" Main """""""""""""""""""""""""""""""""""""""""""
 
 
+# TODO: Delete!
+def learn_k(train_path: str, test_path) -> float:
+    train_examples = KNN._minmax_normalize(get_full_examples_from_csv(train_path, get_features=False)[0])
+    test_examples = KNN._minmax_normalize(get_generator_examples_from_csv(test_path))
+    return KNN.get_accuracy(train_examples, test_examples, 1)
+
+
 def main():
-    print(KNN.learn(TRAIN_PATH, TEST_PATH))
+    print(KNN.classify(TRAIN_PATH, TEST_PATH))
 
 
 if __name__ == "__main__":

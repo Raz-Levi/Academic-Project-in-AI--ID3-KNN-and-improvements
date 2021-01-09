@@ -26,17 +26,14 @@ RANDOM_STATE = 316579275
 NUM_FOR_CHOOSE = 5
 
 
-def get_full_examples_from_csv(path: str, get_features: bool = True) -> Tuple[Examples, Features]:
+def get_full_examples_from_csv(path: str) -> Examples:  # TODO: Remove features
     data_frame = pd.read_csv(filepath_or_buffer=path, sep=",")
     examples = []
     for row in data_frame.values:
         example = list(row)
         example[0] = 1 if example[0] == "M" else 0
         examples.append(example)
-    examples = np.array(examples)
-    if get_features:
-        return examples, np.array([i for i in range(1, len(data_frame.columns))])
-    return examples, ()
+    return np.array(examples)
 
 
 def get_generator_examples_from_csv(path: str) -> Examples:
@@ -99,7 +96,17 @@ def create_num_test(num_examples: int, num_features: int, new_path: str = "try")
     return actual_path
 
 
-
+# def get_full_examples_from_csv(path: str, get_features: bool = False) -> Tuple[Examples, Features]:  # TODO: Remove features
+#     data_frame = pd.read_csv(filepath_or_buffer=path, sep=",")
+#     examples = []
+#     for row in data_frame.values:
+#         example = list(row)
+#         example[0] = 1 if example[0] == "M" else 0
+#         examples.append(example)
+#     examples = np.array(examples)
+#     if get_features:
+#         return examples, np.array([i for i in range(1, len(data_frame.columns))])
+#     return examples, ()
 
 # def monster_test(repeat: int, examples_num: int, features_num: int):
 #     failed_test = 0
@@ -132,3 +139,38 @@ def create_num_test(num_examples: int, num_features: int, new_path: str = "try")
 #
 # def random_accuracy_test():
 #     print(ID3ContinuousFeatures.learn_without_pruning(create_test(1000, 1000, "train"), create_test(100, 1000, "test")))
+
+
+# @staticmethod
+# def _binary_tdidt_algorithm(examples: Examples, features: Features, default: int,
+#                      select_feature: Callable[[Examples], Tuple[int, Examples, Examples]],
+#                      M: int) -> Classifier:
+#     # Empty leaf
+#     if len(examples) == 0:
+#         return 0, [], default
+#
+#     # Consistent node turns leaf
+#     majority_class = ID3ContinuousFeatures._majority_class(examples)
+#     if len(examples) <= M or features.size == 0 or ID3ContinuousFeatures._check_consistent_node(examples,
+#                                                                                                 majority_class):
+#         return 0, [], majority_class
+#
+#     # main decision
+#     # dynamic_features = ID3ContinuousFeatures._continuous_features(features)
+#     chosen_feature, class_one, class_two = select_feature(examples)
+#
+#     if class_one.size == 0 or class_two.size == 0:  # all the features are same- noise
+#         return 0, [], majority_class
+#
+#     # create subtrees fits to the chosen_feature
+#     subtrees = [ID3ContinuousFeatures._tdidt_algorithm(np.delete(class_one, chosen_feature, 1),
+#                                                        np.delete(features, chosen_feature - 1),
+#                                                        majority_class,
+#                                                        select_feature, M),
+#
+#                 ID3ContinuousFeatures._tdidt_algorithm(np.delete(class_two, chosen_feature, 1),
+#                                                        np.delete(features, chosen_feature - 1),
+#                                                        majority_class,
+#                                                        select_feature, M)]
+#
+#     return features[chosen_feature - 1], subtrees, majority_class

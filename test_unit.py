@@ -9,27 +9,27 @@ class TestID3(unittest.TestCase):
 
     def test_binary_one_divide(self):
         test_path = "./test_csv/binary_one_divide.csv"
-        self.assertTrue(ID3ContinuousFeatures.learn_without_pruning(test_path, test_path) == 1)
+        self.assertTrue(ID3ContinuousFeatures.classify_without_pruning(test_path, test_path) == 1)
 
     def test_small_binary(self):
         test_path = "./test_csv/small_binary.csv"
-        self.assertTrue(ID3ContinuousFeatures.learn_without_pruning(test_path, test_path) == 1)
+        self.assertTrue(ID3ContinuousFeatures.classify_without_pruning(test_path, test_path) == 1)
 
     def test_binary_check_ig(self):
         test_path = "./test_csv/binary_check_ig.csv"
-        self.assertTrue(ID3ContinuousFeatures.learn_without_pruning(test_path, test_path) == 1)
+        self.assertTrue(ID3ContinuousFeatures.classify_without_pruning(test_path, test_path) == 1)
 
     def test_binary_check_noise(self):
         test_path = "./test_csv/binary_check_noise.csv"
-        self.assertTrue(ID3ContinuousFeatures.learn_without_pruning(test_path, test_path))
+        self.assertTrue(ID3ContinuousFeatures.classify_without_pruning(test_path, test_path))
 
     def test_binary_random_test(self):
         test_path = "./test_csv/random_test.csv"
-        self.assertTrue(ID3ContinuousFeatures.learn_without_pruning(test_path, test_path) == 1)
+        self.assertTrue(ID3ContinuousFeatures.classify_without_pruning(test_path, test_path) == 1)
 
     def test_binary_all_noise(self):
         test_path = "./test_csv/binary_all_noise.csv"
-        self.assertTrue(ID3ContinuousFeatures.learn_without_pruning(test_path, test_path))
+        self.assertTrue(ID3ContinuousFeatures.classify_without_pruning(test_path, test_path))
 
     # def test_randomly(self):
     #     test_path = create_binary_test(1000, 1000)
@@ -69,22 +69,22 @@ class TestID3(unittest.TestCase):
 class TestKNN(unittest.TestCase):
     def test_nominal_csv(self):
         test_path = "./test_csv/nominal.csv"
-        self.assertTrue(KNN.learn(test_path, test_path) == 1)
+        self.assertTrue(KNN.classify(test_path, test_path) == 1)
 
     def test_medium_continuous(self):
         test_path = "./test_csv/medium_continuous.csv"
         self.assertTrue(learn_k(test_path, test_path) == 1)
-        self.assertTrue(KNN.learn(test_path, test_path))
+        self.assertTrue(KNN.classify(test_path, test_path))
 
     def test_continuous(self):
         test_path = "./test_csv/continuous.csv"
         self.assertTrue(learn_k(test_path, test_path) == 1)
-        self.assertTrue(KNN.learn(test_path, test_path))
+        self.assertTrue(KNN.classify(test_path, test_path))
 
     def test_random(self):
         test_path = create_num_test(100, 100)
         self.assertTrue(learn_k(test_path, test_path) == 1)
-        self.assertTrue(KNN.learn(test_path, test_path))
+        self.assertTrue(KNN.classify(test_path, test_path))
         os.remove(test_path)
 
     # def test_knn_monster(self):
@@ -98,22 +98,22 @@ class TestKNN(unittest.TestCase):
     def test_actual_data_train(self):
         test_path = "./train.csv"
         self.assertTrue(learn_k(test_path, test_path) == 1)
-        self.assertTrue(KNN.learn(test_path, test_path))
+        self.assertTrue(KNN.classify(test_path, test_path))
 
     def test_actual_data(self):
         test_path = "./test.csv"
         self.assertTrue(learn_k(test_path, test_path) == 1)
-        self.assertTrue(KNN.learn(test_path, test_path))
+        self.assertTrue(KNN.classify(test_path, test_path))
 
     def test_actual_accuracy(self):
         train_path = "./train.csv"
         test_path = "./test.csv"
-        self.assertTrue(KNN.learn(train_path, test_path) == 0.9734513274336283)
+        self.assertTrue(KNN.classify(train_path, test_path) == 0.9734513274336283)
 
     def test_loss(self):
         train_path = "./train.csv"
         test_path = "./test.csv"
-        self.assertTrue(KNN.learn_and_get_loss(train_path, test_path) == 0.018584070796460177)
+        self.assertTrue(KNN.classify_and_get_loss(train_path, test_path) == 0.018584070796460177)
 
 
 if __name__ == '__main__':
