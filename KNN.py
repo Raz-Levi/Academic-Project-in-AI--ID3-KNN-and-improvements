@@ -2,7 +2,6 @@
 KNN Algorithm
 """
 from utils import *
-from bisect import insort
 
 """"""""""""""""""""""""""""""""""""""""""" KNN """""""""""""""""""""""""""""""""""""""""""
 
@@ -65,7 +64,7 @@ class KNN(object):
 
         distances = []
         for train_example in train_examples:
-            insort(distances, DistanceWrapper(train_example[0], KNN._euclidean_distance(example, train_example)))
+            insort(distances, DistanceWrapper(train_example[0], euclidean_distance(example, train_example)))
 
         votes_num = 0
         vote_true = 0
@@ -97,19 +96,6 @@ class KNN(object):
             normalized_examples.append(normalized_example)
 
         return np.array(normalized_examples)
-
-    @staticmethod
-    def _euclidean_distance(example_one: Examples, example_two: Examples) -> float:
-        # assume len(example_one) == len(example_two)
-        euclidean_distance = 0
-        is_feature = False
-        for feature_one, feature_two in zip(example_one, example_two):  # the first cell in example is not a feature
-            if not is_feature:
-                is_feature = True
-                continue
-            euclidean_distance += (feature_one - feature_two) ** 2
-
-        return euclidean_distance ** 0.5
 
     @staticmethod
     def experiment(train_examples: Examples, do_print_graph: bool) -> int:

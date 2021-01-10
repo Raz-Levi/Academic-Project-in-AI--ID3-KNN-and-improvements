@@ -7,14 +7,17 @@ import os
 
 import pandas as pd
 import numpy as np
-from random import randint
+from random import randint, sample
 import matplotlib.pyplot as plt
 from sklearn.model_selection import KFold
+from bisect import insort
 
 from typing import Tuple
 from typing import Callable
 Examples = np.array
 Features = np.array
+Forest = np.array
+Centroid = np.array
 Children = list
 Classifier = Tuple[Tuple[int, float], Examples, Examples]
 
@@ -22,7 +25,7 @@ TRAIN_PATH = "./train.csv"
 TEST_PATH = "./test.csv"
 N_SPLIT = 5
 SHUFFLE = True
-RANDOM_STATE = 316579275
+RANDOM_STATE = 123456789 # TODO: change to my ID!
 NUM_FOR_CHOOSE = 5
 
 
@@ -49,6 +52,19 @@ def print_graph(values: list, accuracy: list, char: str):
     plt.ylabel('Average accuracy')
     plt.xlabel(f'{char} values')
     plt.show()
+
+
+def euclidean_distance(example_one: Examples, example_two: Examples) -> float:
+    # assume len(example_one) == len(example_two)
+    distance = 0
+    is_feature = False
+    for feature_one, feature_two in zip(example_one, example_two):  # the first cell in example is not a feature
+        if not is_feature:
+            is_feature = True
+            continue
+        distance += (feature_one - feature_two) ** 2
+
+    return distance ** 0.5
 
 
 """"""""""""""""""""""""""""""""""""""""""" Tests """""""""""""""""""""""""""""""""""""""""""
@@ -174,3 +190,8 @@ def create_num_test(num_examples: int, num_features: int, new_path: str = "try")
 #                                                        select_feature, M)]
 #
 #     return features[chosen_feature - 1], subtrees, majority_class
+
+
+# indexes = [i for i in range(len(examples))]
+#             for __ in range(len(examples)-int(len(examples)*p)):
+#                 del indexes[randint(0, len(indexes))]

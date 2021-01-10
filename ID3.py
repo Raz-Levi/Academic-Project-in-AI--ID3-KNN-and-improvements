@@ -34,12 +34,22 @@ class ID3ContinuousFeatures(object):
     def get_accuracy(classifier: Classifier, examples: Examples) -> float:
         classify_correct, test_examples_amount = 0, 0
         for example in examples:
-            example_result = ID3ContinuousFeatures._test_example(classifier, example)
+            example_result = ID3ContinuousFeatures.classify_one(classifier, example)
             if example_result == example[0]:
                 classify_correct += 1
             test_examples_amount += 1
 
         return classify_correct / test_examples_amount
+
+    @staticmethod
+    def classify_one(classifier: Classifier, example: Examples) -> int:
+        # assume classifier seems like: ( chosen_feature, [children: true, false], classification)
+        if len(classifier[1]) == 0:  # if children == []: take classification
+            return classifier[2]
+
+        if example[classifier[0][0]] > classifier[0][1]:
+            return ID3ContinuousFeatures.classify_one(classifier[1][0], example)
+        return ID3ContinuousFeatures.classify_one(classifier[1][1], example)
 
     @staticmethod
     def _tdidt_algorithm(examples: Examples, default: int,
@@ -77,7 +87,7 @@ class ID3ContinuousFeatures(object):
         """
         train_examples = get_full_examples_from_csv(train_path)
         folds = KFold(n_splits=N_SPLIT, shuffle=SHUFFLE, random_state=RANDOM_STATE)
-        m_values = [i for i in range(4, NUM_FOR_CHOOSE + 4)]
+        m_values = [1, 2, 3, 5, 8, 16, 30, 50, 80, 120] # TODO: change to [i for i in range(4, NUM_FOR_CHOOSE + 4)]
         m_accuracy = []
 
         for m_value in m_values:
@@ -90,8 +100,9 @@ class ID3ContinuousFeatures(object):
         if do_print_graph:
             print_graph(m_values, m_accuracy, 'M')
 
-        print(m_values[int(np.argmax(m_accuracy))])  # TODO: Delete
-        assert len(m_values) == N_SPLIT  # TODO: Delete
+        print([(i,j) for i, j in zip(m_values, m_accuracy)])  # TODO: Delete
+        # assert len(m_values) == N_SPLIT  # TODO: Delete
+        exit() # TODO: Delete
 
         return m_values[int(np.argmax(m_accuracy))], train_examples
 
@@ -188,18 +199,10 @@ class ID3ContinuousFeatures(object):
                 return False
         return True
 
-    @staticmethod
-    def _test_example(classifier: Classifier, example: Examples) -> int:
-        # assume classifier seems like: ( chosen_feature, [children: true, false], classification)
-        if len(classifier[1]) == 0:  # if children == []: take classification
-            return classifier[2]
-
-        if example[classifier[0][0]] > classifier[0][1]:
-            return ID3ContinuousFeatures._test_example(classifier[1][0], example)
-        return ID3ContinuousFeatures._test_example(classifier[1][1], example)
-
 
 """"""""""""""""""""""""""""""""""""""""""" Main """""""""""""""""""""""""""""""""""""""""""
+def do_test():
+    print(ID3ContinuousFeatures.classify_with_pruning(TRAIN_PATH, TEST_PATH))
 
 
 def main():
@@ -207,4 +210,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+     do_test()
