@@ -14,6 +14,8 @@ from bisect import insort
 
 from typing import Tuple
 from typing import Callable
+from typing import Generator
+
 Examples = np.array
 Features = np.array
 Forest = np.array
@@ -25,8 +27,9 @@ TRAIN_PATH = "./train.csv"
 TEST_PATH = "./test.csv"
 N_SPLIT = 5
 SHUFFLE = True
-RANDOM_STATE = 123456789 # TODO: change to my ID!
+RANDOM_STATE = 123456789  # TODO: change to my ID!
 NUM_FOR_CHOOSE = 5
+POSITIVE_SIGN = "M"
 
 
 def get_full_examples_from_csv(path: str) -> Examples:  # TODO: Remove features
@@ -34,12 +37,12 @@ def get_full_examples_from_csv(path: str) -> Examples:  # TODO: Remove features
     examples = []
     for row in data_frame.values:
         example = list(row)
-        example[0] = 1 if example[0] == "M" else 0
+        example[0] = 1 if example[0] == POSITIVE_SIGN else 0
         examples.append(example)
     return np.array(examples)
 
 
-def get_generator_examples_from_csv(path: str) -> Examples:
+def get_generator_examples_from_csv(path: str) -> Generator[Examples]:
     data_frame = pd.read_csv(filepath_or_buffer=path, sep=",")
     for row in data_frame.values:
         example = list(row)

@@ -9,13 +9,13 @@ from utils import *
 class KNN(object):
     @staticmethod
     def classify(train_path: str, test_path, do_print_graph: bool = False) -> float:
-        train_examples = KNN._minmax_normalize(get_full_examples_from_csv(train_path, get_features=False)[0])
+        train_examples = KNN._minmax_normalize(get_full_examples_from_csv(train_path))
         test_examples = KNN._minmax_normalize(get_generator_examples_from_csv(test_path))
         return KNN.get_accuracy(train_examples, test_examples, k=KNN.experiment(train_examples, do_print_graph))
 
     @staticmethod
     def classify_and_get_loss(train_path: str, test_path, do_print_graph: bool = False) -> float:
-        train_examples = KNN._minmax_normalize(get_full_examples_from_csv(train_path, get_features=False)[0])
+        train_examples = KNN._minmax_normalize(get_full_examples_from_csv(train_path))
         test_examples = KNN._minmax_normalize(get_generator_examples_from_csv(test_path))
         return KNN.get_loss(train_examples, test_examples, k=KNN.experiment(train_examples, do_print_graph))
 
@@ -130,7 +130,7 @@ class KNN(object):
 
 # TODO: Delete!
 def learn_k(train_path: str, test_path) -> float:
-    train_examples = KNN._minmax_normalize(get_full_examples_from_csv(train_path, get_features=False)[0])
+    train_examples = KNN._minmax_normalize(get_full_examples_from_csv(train_path))
     test_examples = KNN._minmax_normalize(get_generator_examples_from_csv(test_path))
     return KNN.get_accuracy(train_examples, test_examples, 1)
 

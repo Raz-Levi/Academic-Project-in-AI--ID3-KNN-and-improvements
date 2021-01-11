@@ -31,7 +31,7 @@ class ID3ContinuousFeatures(object):
                                                       ID3ContinuousFeatures._max_ig_continuous_features, M)
 
     @staticmethod
-    def get_accuracy(classifier: Classifier, examples: Examples) -> float:
+    def get_accuracy(classifier: Classifier, examples: Generator[Examples]) -> float:
         classify_correct, test_examples_amount = 0, 0
         for example in examples:
             example_result = ID3ContinuousFeatures.classify_one(classifier, example)
@@ -43,7 +43,7 @@ class ID3ContinuousFeatures(object):
 
     @staticmethod
     def classify_one(classifier: Classifier, example: Examples) -> int:
-        # assume classifier seems like: ( chosen_feature, [children: true, false], classification)
+        # assume classifier seems like: ( (chosen_feature, part), [children: true, false], classification)
         if len(classifier[1]) == 0:  # if children == []: take classification
             return classifier[2]
 
