@@ -2,6 +2,7 @@ import unittest
 from ID3 import *
 from KNN import *
 from KNNForest import *
+from CostSensitiveKNN import *
 from utils import *
 import os
 
@@ -48,6 +49,10 @@ class TestKNN(unittest.TestCase):
         self.assertFalse(KNN(TRAIN_PATH).classify_and_get_loss(TRAIN_PATH))
         self.assertFalse(KNN(TEST_PATH).classify_and_get_loss(TEST_PATH))
 
+
+class TestCostSensitiveKNN(unittest.TestCase):
+    def test_actual(self):
+        self.assertTrue(CostSensitiveKNN(TRAIN_PATH).classify(TEST_PATH) == 0.003539823008849558)
 
 class TestKNNForest(unittest.TestCase):
     def test_countinius(self):

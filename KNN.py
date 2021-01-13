@@ -16,7 +16,6 @@ class KNN(LearningAlgorithm):
     def classify(self, test_path: str) -> float:
         test_examples = get_full_examples_from_csv(test_path)
         self._test_minmax_normalize(test_examples)
-        # assert test_examples == self._train_examples # TODO: Delete
         return self._get_accuracy(test_examples)
 
     def classify_and_get_loss(self, test_path) -> float:
@@ -36,15 +35,15 @@ class KNN(LearningAlgorithm):
         fp, fn = 0, 0
         for example in test_examples:
             example_result = self._classify_one(example)
-            if example_result == 1 and example[0] == 0:
+            if example_result == 1 and example[0] == 0:  # סיווג אדם בריא כחולה  TODO: Delete
                 fp += 1
-            elif example_result == 0 and example[0] == 1:
+            elif example_result == 0 and example[0] == 1:  # סיווג אדם חולה כבריא TODO: Delete
                 fn += 1
 
         return (0.1 * fp + fn) / len(test_examples)
 
     ######### Helper Functions for KNN Algorithm #########
-    def _classify_one(self, example: Examples) -> int:
+    def _classify_one(self, test_example: Examples) -> int:
 
         class DistanceWrapper(object):
             def __init__(self, classification: int, distance: float):
@@ -57,20 +56,20 @@ class KNN(LearningAlgorithm):
             def __eq__(self, other: int):
                 return self.classification == other
 
-        distances = []
+        committee = []
         for train_example in self._train_examples:
-            insort(distances, DistanceWrapper(train_example[0], euclidean_distance(example, train_example)))
+            insort(committee, DistanceWrapper(train_example[0], euclidean_distance(test_example, train_example)))
 
-        votes_num, vote_true, vote_false = 0, 0, 0
-        for vote in distances:
+        votes_num, vote_for, vote_against = 0, 0, 0
+        for vote in committee:
             if votes_num >= self._k:
                 break
             if vote == 1:
-                vote_true += 1
+                vote_for += 1
             else:
-                vote_false += 1
+                vote_against += 1
             votes_num += 1
-        return 1 if vote_true >= vote_false else 0
+        return 1 if vote_for >= vote_against else 0
 
     def _train_minmax_normalize(self) -> list:
         min_max_values = []
@@ -94,7 +93,7 @@ class KNN(LearningAlgorithm):
 
         return min_max_values
 
-    def _test_minmax_normalize(self, test_examples: Examples):  # TODO: check if succeeded normalize by ref
+    def _test_minmax_normalize(self, test_examples: Examples):
         max_min_index = 0
         is_classifier = True
         for example in test_examples.transpose():
