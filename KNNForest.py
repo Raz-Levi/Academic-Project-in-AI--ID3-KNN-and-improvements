@@ -1,10 +1,14 @@
 """
 KNNForest Algorithm
 """
+from LearningAlgorithm import LearningAlgorithm
 from utils import *
 import ID3
 from dataclasses import dataclass
 
+BEST_N = 4
+BEST_P = 0.3
+BEST_K = 3
 
 """"""""""""""""""""""""""""""""""""""""""" KNNForest """""""""""""""""""""""""""""""""""""""""""
 
@@ -15,9 +19,9 @@ class Tree:
     centroid: Centroid
 
 
-class KNNForest(object):
-    def __init__(self, train_path: str, num_trees: int, p: float, num_chosen_trees: int):
-        self._train_examples = get_full_examples_from_csv(train_path)
+class KNNForest(LearningAlgorithm):
+    def __init__(self, train_path: str, num_trees: int = BEST_N, p: float = BEST_P, num_chosen_trees: int = BEST_K):
+        super().__init__(train_path)
         self._num_trees = num_trees
         self._p = p
         self._num_chosen_trees = num_chosen_trees
@@ -40,16 +44,6 @@ class KNNForest(object):
                 centroid=np.average(np.delete(chosen_examples, 0, 1), axis=0)))
 
         return np.array(forest)
-
-    def _get_accuracy(self, test_examples: Examples) -> float:
-        classify_correct, test_examples_amount = 0, 0
-        for example in test_examples:
-            example_result = self._classify_one(example)
-            if example_result == example[0]:
-                classify_correct += 1
-            test_examples_amount += 1
-
-        return classify_correct / test_examples_amount
 
     def _classify_one(self, test_example: Examples) -> int:
 
@@ -78,42 +72,9 @@ class KNNForest(object):
 
 """"""""""""""""""""""""""""""""""""""""""" Main """""""""""""""""""""""""""""""""""""""""""
 
-def exp():
-    path = "./test_csv/try.csv"
-    print(KNNForest(path, 1, 1, 1).classify(path))
-
-def cons():
-    best = (0, 0, 0)
-    best_acc = 0
-    for N in range(1, 10):
-        print(f'check N={N}')
-        for k in range(1, N + 1):
-            print(f'check k={k}')
-            for p in range(3, 8):
-                print(f'check p={p / 10}')
-                acc = KNNForest(TRAIN_PATH, N, p / 10, k).classify(TEST_PATH)
-                if best_acc < acc:
-                    best_acc = acc
-                    best = (N, p / 10, k)
-        print("----------------------")
-        print(f'intil now- best acc: {best_acc}, N={best[0]}, p={best[1]}, k={best[2]}')
-    print("====================================")
-    print(f'finished- best acc: {best_acc}, N={best[0]}, p={best[1]}, k={best[2]}')
 
 def main():
-    best_acc = 0
-    while True:
-        N= randint(1, 15)
-        k = randint(1, N)
-        p = randint(300,701)/1000
-        acc = KNNForest(TRAIN_PATH, N, p, k).classify(TEST_PATH)
-        if best_acc <= acc:
-            best_acc = acc
-            print("====================================")
-            print(f'new Max: best acc: {best_acc}, N={N}, p={p}, k={k}')
-            print("====================================")
-        else:
-            print(f'checked N={N}, p={p}, k={k}')
+    print(KNNForest(TRAIN_PATH).classify(TEST_PATH))
 
 
 if __name__ == '__main__':

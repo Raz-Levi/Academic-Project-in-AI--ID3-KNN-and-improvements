@@ -19,6 +19,9 @@ class CostSensitiveKNN(KNN):
     def classify(self, test_path: str) -> float:
         return self.classify_and_get_loss(test_path)
 
+    def _get_accuracy(self, test_examples: Examples) -> float:
+        return self._get_loss(test_examples)
+
     def _classify_one(self, test_example: Examples) -> int:
 
         class DistanceWrapper(object):

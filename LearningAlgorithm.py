@@ -15,9 +15,15 @@ class LearningAlgorithm(object):
     def classify(self, test_path: str) -> float:
         ...
 
-    @abc.abstractmethod
     def _get_accuracy(self, test_examples: Examples) -> float:
-        ...
+        classify_correct, test_examples_amount = 0, 0
+        for example in test_examples:
+            example_result = self._classify_one(example)
+            if example_result == example[0]:
+                classify_correct += 1
+            test_examples_amount += 1
+
+        return classify_correct / test_examples_amount
 
     @abc.abstractmethod
     def _classify_one(self, test_example: Examples) -> int:

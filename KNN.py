@@ -4,11 +4,13 @@ KNN Algorithm
 from LearningAlgorithm import LearningAlgorithm
 from utils import get_full_examples_from_csv, Examples, euclidean_distance, TRAIN_PATH, TEST_PATH, np, insort
 
+BEST_K = 1
+
 """"""""""""""""""""""""""""""""""""""""""" KNN """""""""""""""""""""""""""""""""""""""""""
 
 
 class KNN(LearningAlgorithm):
-    def __init__(self, train_path: str, k: int = 1):
+    def __init__(self, train_path: str, k: int = BEST_K):
         super().__init__(train_path)
         self._min_max_values = self._train_minmax_normalize()
         self._k = k
@@ -22,14 +24,6 @@ class KNN(LearningAlgorithm):
         test_examples = get_full_examples_from_csv(test_path)
         self._test_minmax_normalize(test_examples)
         return self._get_loss(test_examples)
-
-    def _get_accuracy(self, test_examples: Examples) -> float:
-        classify_correct = 0
-        for example in test_examples:
-            if self._classify_one(example) == example[0]:
-                classify_correct += 1
-
-        return classify_correct / len(test_examples)
 
     def _get_loss(self, test_examples: Examples) -> float:
         fp, fn = 0, 0
