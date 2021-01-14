@@ -7,7 +7,7 @@ from utils import get_full_examples_from_csv, Examples
 """"""""""""""""""""""""""""""""""""""""""" LearningAlgorithm """""""""""""""""""""""""""""""""""""""""""
 
 
-class LearningAlgorithm(object):
+class LearningAlgorithm(abc.ABC):
     def __init__(self, train_path: str):
         self._train_examples = get_full_examples_from_csv(train_path)
 

@@ -4,6 +4,8 @@ ID3 Algorithm
 from utils import *
 from math import log2
 
+BEST_M = 1
+
 """"""""""""""""""""""""""""""""""""""""""" ID3 """""""""""""""""""""""""""""""""""""""""""
 
 
@@ -56,7 +58,7 @@ class ID3ContinuousFeatures(object):
                          select_feature: Callable[[Examples], Tuple[Tuple[int, float], Examples, Examples]],
                          M: int) -> Classifier:
         # Empty leaf
-        if len(examples) == 0 or len(examples) < M:
+        if len(examples) == 0 or len(examples) <= M:  # TODO: should be <=
             return (0, 0), [], default
 
         # Consistent node turns leaf
@@ -125,7 +127,7 @@ class ID3ContinuousFeatures(object):
                 ig = father_entropy - (son1_true_entropy * (len(class_true) / len(examples)) + son2_false_entropy * (
                         len(class_false) / len(examples)))
 
-                if max_ig <= ig:
+                if max_ig <= ig:  # TODO: With = or not?
                     max_ig = ig
                     argmax_ig = feature
                     max_class_one = class_true
@@ -205,7 +207,7 @@ class ID3ContinuousFeatures(object):
 
 
 def main():
-    print(ID3ContinuousFeatures.classify_with_pruning(TRAIN_PATH, TEST_PATH))
+    print(ID3ContinuousFeatures.classify_without_pruning(TRAIN_PATH, TEST_PATH))
 
 
 if __name__ == "__main__":
