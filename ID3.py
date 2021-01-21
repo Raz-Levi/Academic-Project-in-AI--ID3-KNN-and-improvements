@@ -11,7 +11,7 @@ BEST_M = 1
 
 
 class ID3ContinuousFeatures(LearningAlgorithm):
-    def __init__(self, train_examples, m: int = 1):
+    def __init__(self, train_examples, m: int = BEST_M):
         if type(train_examples) == str:
             super().__init__(train_examples)
         else:

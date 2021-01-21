@@ -2,17 +2,19 @@
 CostSensitiveKNN Algorithm
 """
 from KNN import KNN
-from utils import Examples, TRAIN_PATH, TEST_PATH, insort, euclidean_distance
+# from utils import Examples, TRAIN_PATH, TEST_PATH, insort, euclidean_distance // TODO: put it again
+from utils import *  # TODO: Delete
 from ID3 import ID3ContinuousFeatures
 
+BEST_LOSS_K = 1
 BEST_BOUND = 0.056
 
 """"""""""""""""""""""""""""""""""""""""""" CostSensitiveKNN """""""""""""""""""""""""""""""""""""""""""
 
 
 class CostSensitiveKNN(KNN):
-    def __init__(self, train_path: str, bound: float = BEST_BOUND):
-        super().__init__(train_path)
+    def __init__(self, train_path: str, bound: float = BEST_BOUND, k: int = BEST_LOSS_K):
+        super().__init__(train_path, k)
         self._bound = bound
         self._id3_classifier = None
 
@@ -56,16 +58,35 @@ class CostSensitiveKNN(KNN):
 
         # KNN wants to classify as Negative to disease (healthy), let's get a second opinion
         if self._id3_classifier is None:
-            self._id3_classifier = ID3ContinuousFeatures.get_classifier(self._train_examples)
+            self._id3_classifier = ID3ContinuousFeatures(self._train_examples)
 
-        if ID3ContinuousFeatures.classify_one(self._id3_classifier, test_example):
+        if self._id3_classifier._classify_one(test_example):
             return 1
 
-        # Both KNN and ID3 want to classify as Negative to disease (healthy), let's get a third opinion
+        # Both KNN and ID3 want to classify as Negative to disease (healthy), let's get a third final opinion
         return under_bound[0] > under_bound[1]
 
 
 """"""""""""""""""""""""""""""""""""""""""" Main """""""""""""""""""""""""""""""""""""""""""
+
+
+def experiment(train_path, do_print_graph: bool = True) -> int:
+    train_examples = my(train_path)
+    folds = KFold(n_splits=N_SPLIT, shuffle=SHUFFLE, random_state=RANDOM_STATE)
+    m_values = M_VALUES
+    m_accuracy = []
+
+    for m_value in m_values:
+        accuracy = 0
+        for train_fold, test_fold in folds.split(train_examples):
+            accuracy += CostSensitiveKNN(np.take(train_examples, train_fold, 0), BEST_BOUND, m_value).classify(
+                np.take(train_examples, test_fold, 0))
+        m_accuracy.append(accuracy / N_SPLIT)
+
+    if do_print_graph:
+        print_graph(m_values, m_accuracy, 'K')
+
+    return m_values[int(np.argmax(m_accuracy))]
 
 
 def main():
@@ -73,4 +94,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+    experiment(TRAIN_PATH)

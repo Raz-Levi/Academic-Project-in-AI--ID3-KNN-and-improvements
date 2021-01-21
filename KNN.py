@@ -31,9 +31,9 @@ class KNN(LearningAlgorithm):
         fp, fn = 0, 0
         for example in test_examples:
             example_result = self._classify_one(example)
-            if example_result == 1 and example[0] == 0:  # סיווג אדם בריא כחולה  TODO: Delete
+            if example_result == 1 and example[0] == 0:
                 fp += 1
-            elif example_result == 0 and example[0] == 1:  # סיווג אדם חולה כבריא TODO: Delete
+            elif example_result == 0 and example[0] == 1:
                 fn += 1
 
         return (0.1 * fp + fn) / len(test_examples)
@@ -100,33 +100,6 @@ class KNN(LearningAlgorithm):
                 example[feature] = (example[feature] - self._min_max_values[max_min_index][0]) / \
                                    (self._min_max_values[max_min_index][1] - self._min_max_values[max_min_index][0])
             max_min_index += 1
-
-
-# def experiment(train_examples: Examples, do_print_graph: bool = False) -> int:
-#     """
-#         For using this function and print the graph, you may use 'KNN.classify' function and set 'do_print_graph' param
-#         to True. In default, the function will not print the graph.
-#
-#         @:param train_examples(np.array): the train examples.
-#         @:param do_print_graph(bool): if true, the function will print the graph, otherwise the function will not.
-#         @:return the best K.
-#     """
-#     folds = KFold(n_splits=N_SPLIT, shuffle=SHUFFLE, random_state=RANDOM_STATE)
-#     k_values = [i for i in range(1, NUM_FOR_CHOOSE+1)]  # assume len(train_examples) >= 5, because we can't KFold with n_split = 5
-#     k_accuracy = []
-#
-#     for k_value in k_values:
-#         accuracy = 0
-#         for train_fold, test_fold in folds.split(train_examples):
-#             accuracy += KNN.get_accuracy(np.take(train_examples, train_fold, 0), np.take(train_examples, test_fold, 0), k_value)
-#         k_accuracy.append(accuracy / N_SPLIT)
-#
-#     if do_print_graph:
-#         print_graph(k_values, k_accuracy, 'K')
-#
-#     assert len(k_values) == N_SPLIT  # TODO: Delete
-#
-#     return k_values[int(np.argmax(k_accuracy))]
 
 
 """"""""""""""""""""""""""""""""""""""""""" Main """""""""""""""""""""""""""""""""""""""""""
