@@ -1,6 +1,7 @@
 """
 ID3 Algorithm
 """
+from LearningAlgorithm import LearningAlgorithm
 from utils import *
 from math import log2
 
@@ -9,105 +10,60 @@ BEST_M = 1
 """"""""""""""""""""""""""""""""""""""""""" ID3 """""""""""""""""""""""""""""""""""""""""""
 
 
-class ID3ContinuousFeatures(object):
-    @staticmethod
-    def classify_without_pruning(train_path: str, test_path: str) -> float:
-        train_examples = get_full_examples_from_csv(train_path)
-        return ID3ContinuousFeatures.get_accuracy(
-            ID3ContinuousFeatures.get_classifier(train_examples),
-            get_generator_examples_from_csv(test_path))
+class ID3ContinuousFeatures(LearningAlgorithm):
+    def __init__(self, train_examples, m: int = 1):
+        if type(train_examples) == str:
+            super().__init__(train_examples)
+        else:
+            self._train_examples = train_examples
+        self._m = m
+        self._classifier = self.get_classifier()
 
-    @staticmethod
-    def classify_with_pruning(train_path: str, test_path: str, do_print_graph: bool = False) -> float:
-        M, train_examples = ID3ContinuousFeatures.experiment(train_path, do_print_graph)
+    def classify(self, test_examples) -> float:
+        if type(test_examples) == str:
+            return self._get_accuracy(get_generator_examples_from_csv(test_examples))
+        return self._get_accuracy(test_examples)
 
-        return ID3ContinuousFeatures.get_accuracy(
-            ID3ContinuousFeatures.get_classifier(train_examples, M),
-            get_generator_examples_from_csv(test_path))
+    def get_classifier(self) -> Classifier:
+        return self._tdidt_algorithm(self._train_examples, self._majority_class(self._train_examples)[0], self._max_ig_continuous_features)
 
     ######### Helper Functions for ID3 Algorithm #########
-    @staticmethod
-    def get_classifier(examples: Examples, M: int = 1) -> Classifier:
-        return ID3ContinuousFeatures._tdidt_algorithm(examples,
-                                                      ID3ContinuousFeatures._majority_class(examples)[0],
-                                                      ID3ContinuousFeatures._max_ig_continuous_features, M)
+    def _classify_one(self, test_example: Examples) -> int:
+        return self._classify_one_recursive(self._classifier, test_example)
 
-    @staticmethod
-    def get_accuracy(classifier: Classifier, examples: Examples) -> float:
-        classify_correct, test_examples_amount = 0, 0
-        for example in examples:
-            example_result = ID3ContinuousFeatures.classify_one(classifier, example)
-            if example_result == example[0]:
-                classify_correct += 1
-            test_examples_amount += 1
+    def _tdidt_algorithm(self, train_examples: Examples, default: int,
+                         select_feature: Callable[[Examples], Tuple[Tuple[int, float], Examples, Examples]]) -> Classifier:
 
-        return classify_correct / test_examples_amount
-
-    @staticmethod
-    def classify_one(classifier: Classifier, example: Examples) -> int:
-        # assume classifier seems like: ( (chosen_feature, part), [children: true, false], classification)
-        if len(classifier[1]) == 0:  # if children == []: take classification
-            return classifier[2]
-
-        if example[classifier[0][0]] > classifier[0][1]:
-            return ID3ContinuousFeatures.classify_one(classifier[1][0], example)
-        return ID3ContinuousFeatures.classify_one(classifier[1][1], example)
-
-    @staticmethod
-    def _tdidt_algorithm(examples: Examples, default: int,
-                         select_feature: Callable[[Examples], Tuple[Tuple[int, float], Examples, Examples]],
-                         M: int) -> Classifier:
         # Empty leaf
-        if len(examples) == 0 or len(examples) <= M:  # TODO: should be <=
+        if len(train_examples) == 0 or len(train_examples) < self._m:
             return (0, 0), [], default
 
         # Consistent node turns leaf
-        majority_class, check_consistent_node = ID3ContinuousFeatures._majority_class(examples)
-        if len(examples[0]) == 1 or check_consistent_node == len(examples):
+        majority_class, num_of_majority_class = ID3ContinuousFeatures._majority_class(train_examples)
+        if len(train_examples[0]) == 1 or num_of_majority_class == len(train_examples):
             return (0, 0), [], majority_class
 
         # main decision
-        chosen_feature, class_one, class_two = select_feature(examples)
+        chosen_feature, class_one, class_two = select_feature(train_examples)
         if class_one.size == 0 or class_two.size == 0:  # all the features are same- noise
             return (0, 0), [], majority_class
 
         # create subtrees fits to the chosen_feature
-        subtrees = [ID3ContinuousFeatures._tdidt_algorithm(class_one, majority_class, select_feature, M),
-                    ID3ContinuousFeatures._tdidt_algorithm(class_two, majority_class, select_feature, M)]
+        subtrees = [self._tdidt_algorithm(class_one, majority_class, select_feature),
+                    self._tdidt_algorithm(class_two, majority_class, select_feature)]
 
         return chosen_feature, subtrees, majority_class
 
+    ######### Static Functions for ID3 Algorithm #########
     @staticmethod
-    def experiment(train_path: str, do_print_graph: bool) -> Tuple[int, Examples]:
-        """
-            For using this function and print the graph, you may use 'ID3ContinuousFeatures.classify_with_pruning' function and set 'do_print_graph' param
-            to True. In default, the function will not print the graph.
+    def _classify_one_recursive(classifier: Classifier, test_example: Examples) -> int:
+        # assume classifier seems like: ( (chosen_feature, part), [children: true, false], classification)
+        if len(classifier[1]) == 0:  # if children == []: take classification
+            return classifier[2]
 
-            @:param train_path(str): path for train data.
-            @:param do_print_graph(bool): if true, the function will print the graph, otherwise the function will not. default value: False.
-            @:return the best M hyper-parameter, train examples and features (we don't want to read it again).
-        """
-        train_examples = get_full_examples_from_csv(train_path)
-        folds = KFold(n_splits=N_SPLIT, shuffle=SHUFFLE, random_state=RANDOM_STATE)
-        m_values = [1, 2, 3, 5, 8, 16] # TODO: change to [i for i in range(4, NUM_FOR_CHOOSE + 4)]
-        m_accuracy = []
-
-        for m_value in m_values:
-            accuracy = 0
-            for train_fold, test_fold in folds.split(train_examples):
-                classifier = ID3ContinuousFeatures.get_classifier(np.take(train_examples, train_fold, 0), m_value)
-                accuracy += ID3ContinuousFeatures.get_accuracy(classifier, np.take(train_examples, test_fold, 0))
-            m_accuracy.append(accuracy / N_SPLIT)
-
-        if do_print_graph:
-            print_graph(m_values, m_accuracy, 'M')
-
-        print([(i,j) for i, j in zip(m_values, m_accuracy)])  # TODO: Delete
-        print(m_values[int(np.argmax(m_accuracy))])  # TODO: Delete
-        # assert len(m_values) == N_SPLIT  # TODO: Delete
-        exit()
-
-        return m_values[int(np.argmax(m_accuracy))], train_examples
+        if test_example[classifier[0][0]] > classifier[0][1]:
+            return ID3ContinuousFeatures._classify_one_recursive(classifier[1][0], test_example)
+        return ID3ContinuousFeatures._classify_one_recursive(classifier[1][1], test_example)
 
     @staticmethod
     def _max_ig_continuous_features(examples: Examples) -> Tuple[Tuple[int, float], Examples, Examples]:
@@ -127,7 +83,7 @@ class ID3ContinuousFeatures(object):
                 ig = father_entropy - (son1_true_entropy * (len(class_true) / len(examples)) + son2_false_entropy * (
                         len(class_false) / len(examples)))
 
-                if max_ig <= ig:  # TODO: With = or not?
+                if max_ig <= ig:
                     max_ig = ig
                     argmax_ig = feature
                     max_class_one = class_true
@@ -136,8 +92,6 @@ class ID3ContinuousFeatures(object):
 
         return (argmax_ig, max_part), max_class_one, max_class_two
 
-
-    ######### Helper Functions in class #########
     @staticmethod
     def _dynamic_partition(feature: Features) -> Examples:
         binary_features = []
@@ -194,22 +148,40 @@ class ID3ContinuousFeatures(object):
         else:
             return randint(0, 1), 0
 
-    # @staticmethod
-    # def _check_consistent_node(examples: Examples, c: int) -> bool:
-    #     # assume examples != []
-    #     for example in np.transpose(examples)[0]:
-    #         if example != c:
-    #             return False
-    #     return True
-
 
 """"""""""""""""""""""""""""""""""""""""""" Main """""""""""""""""""""""""""""""""""""""""""
 
 
+def experiment(train_path: str = TEST_PATH, do_print_graph: bool = False) -> int:
+    """
+        For using this function and print the graph, you may call this method with any path to train examples you wish
+        (default is 'train.csv') and set 'do_print_graph' param to True.
+        In default, the function will train on 'train.csv' and will not print the graph.
+
+        @:param train_path(str): path for train data. default value: 'train.csv'.
+        @:param do_print_graph(bool): if true, the function will print the graph, otherwise the function will not. default value: False.
+        @:return the best M hyper-parameter.
+    """
+    train_examples = get_full_examples_from_csv(train_path)
+    folds = KFold(n_splits=N_SPLIT, shuffle=SHUFFLE, random_state=RANDOM_STATE)
+    m_values = M_VALUES
+    m_accuracy = []
+
+    for m_value in m_values:
+        accuracy = 0
+        for train_fold, test_fold in folds.split(train_examples):
+            accuracy += ID3ContinuousFeatures(np.take(train_examples, train_fold, 0), m_value).classify(np.take(train_examples, test_fold, 0))
+        m_accuracy.append(accuracy / N_SPLIT)
+
+    if do_print_graph:
+        print_graph(m_values, m_accuracy, 'M')
+
+    return m_values[int(np.argmax(m_accuracy))]
+
+
 def main():
-    print(ID3ContinuousFeatures.classify_without_pruning(TRAIN_PATH, TEST_PATH))
+    print(ID3ContinuousFeatures(TRAIN_PATH).classify(TEST_PATH))
 
 
 if __name__ == "__main__":
     main()
-

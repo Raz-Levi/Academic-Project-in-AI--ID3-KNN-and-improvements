@@ -24,9 +24,10 @@ Classifier = Tuple[Tuple[int, float], Examples, Examples]
 
 TRAIN_PATH = "./train.csv"
 TEST_PATH = "./test.csv"
+M_VALUES = (1, 3, 5, 7, 9)
 N_SPLIT = 5
 SHUFFLE = True
-RANDOM_STATE = 123456789  # TODO: change to my ID!
+RANDOM_STATE = 316579275
 NUM_FOR_CHOOSE = 5
 POSITIVE_SIGN = "M"
 

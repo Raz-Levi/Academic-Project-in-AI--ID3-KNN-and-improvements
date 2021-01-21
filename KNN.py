@@ -25,6 +25,8 @@ class KNN(LearningAlgorithm):
         self._test_minmax_normalize(test_examples)
         return self._get_loss(test_examples)
 
+    ######### Helper Functions for KNN Algorithm #########
+
     def _get_loss(self, test_examples: Examples) -> float:
         fp, fn = 0, 0
         for example in test_examples:
@@ -36,7 +38,6 @@ class KNN(LearningAlgorithm):
 
         return (0.1 * fp + fn) / len(test_examples)
 
-    ######### Helper Functions for KNN Algorithm #########
     def _classify_one(self, test_example: Examples) -> int:
 
         class DistanceWrapper(object):
