@@ -2,7 +2,7 @@
 KNN Algorithm
 """
 from LearningAlgorithm import LearningAlgorithm
-from utils import get_full_examples_from_csv, Examples, euclidean_distance, TRAIN_PATH, TEST_PATH, np, insort
+from utils import get_full_examples_from_csv, Examples, CommitteeWrapper, euclidean_distance, TRAIN_PATH, TEST_PATH, np, insort
 
 BEST_K = 1
 
@@ -25,46 +25,33 @@ class KNN(LearningAlgorithm):
         self._test_minmax_normalize(test_examples)
         return self._get_loss(test_examples)
 
+    def classify_one(self, test_example: Examples) -> int:
+        committee = []
+        for train_example in self._train_examples:
+            insort(committee, CommitteeWrapper(train_example[0], euclidean_distance(test_example, train_example)))
+
+        vote_for, vote_against = 0, 0
+        for vote in committee:
+            if vote_for + vote_against >= self._k:
+                break
+            if vote == 1:
+                vote_for += 1
+            else:
+                vote_against += 1
+        return 1 if vote_for >= vote_against else 0
+
     ######### Helper Functions for KNN Algorithm #########
 
     def _get_loss(self, test_examples: Examples) -> float:
         fp, fn = 0, 0
         for example in test_examples:
-            example_result = self._classify_one(example)
+            example_result = self.classify_one(example)
             if example_result == 1 and example[0] == 0:
                 fp += 1
             elif example_result == 0 and example[0] == 1:
                 fn += 1
 
         return (0.1 * fp + fn) / len(test_examples)
-
-    def _classify_one(self, test_example: Examples) -> int:
-
-        class DistanceWrapper(object):
-            def __init__(self, classification: int, distance: float):
-                self.classification = classification
-                self.distance = distance
-
-            def __lt__(self, other):
-                return self.distance < other.distance
-
-            def __eq__(self, other: int):
-                return self.classification == other
-
-        committee = []
-        for train_example in self._train_examples:
-            insort(committee, DistanceWrapper(train_example[0], euclidean_distance(test_example, train_example)))
-
-        votes_num, vote_for, vote_against = 0, 0, 0
-        for vote in committee:
-            if votes_num >= self._k:
-                break
-            if vote == 1:
-                vote_for += 1
-            else:
-                vote_against += 1
-            votes_num += 1
-        return 1 if vote_for >= vote_against else 0
 
     def _train_minmax_normalize(self) -> list:
         min_max_values = []

@@ -18,7 +18,7 @@ class LearningAlgorithm(abc.ABC):
     def _get_accuracy(self, test_examples: Examples) -> float:
         classify_correct, test_examples_amount = 0, 0
         for example in test_examples:
-            example_result = self._classify_one(example)
+            example_result = self.classify_one(example)
             if example_result == example[0]:
                 classify_correct += 1
             test_examples_amount += 1
@@ -26,5 +26,5 @@ class LearningAlgorithm(abc.ABC):
         return classify_correct / test_examples_amount
 
     @abc.abstractmethod
-    def _classify_one(self, test_example: Examples) -> int:
+    def classify_one(self, test_example: Examples) -> int:
         ...

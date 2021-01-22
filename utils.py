@@ -35,6 +35,20 @@ RANDOM_STATE = 316579275
 NUM_FOR_CHOOSE = 5
 POSITIVE_SIGN = "M"
 
+""""""""""""""""""""""""""""""""""""""" Useful Classes """""""""""""""""""""""""""""""""""""""
+
+
+class CommitteeWrapper(object):
+    def __init__(self, classification: int, distance: float):
+        self.classification_or_classifier = classification
+        self.distance = distance
+
+    def __lt__(self, other):
+        return self.distance < other.distance
+
+    def __eq__(self, other: int):
+        return self.classification_or_classifier == other
+
 
 """"""""""""""""""""""""""""""""""""""" Useful Methods """""""""""""""""""""""""""""""""""""""
 
@@ -49,12 +63,12 @@ POSITIVE_SIGN = "M"
 #     return np.array(examples)
 
 
-def get_generator_examples_from_csv(path: str) -> Examples:
-    data_frame = pd.read_csv(filepath_or_buffer=path, sep=",")
-    for row in data_frame.values:
-        example = list(row)
-        example[0] = 1 if example[0] == "M" else 0
-        yield example
+# def get_generator_examples_from_csv(path: str) -> Examples:
+#     data_frame = pd.read_csv(filepath_or_buffer=path, sep=",")
+#     for row in data_frame.values:
+#         example = list(row)
+#         example[0] = 1 if example[0] == "M" else 0
+#         yield example
 
 
 def print_graph(values: list, accuracy: list, char: str):
@@ -76,7 +90,7 @@ def euclidean_distance(example_one: Examples, example_two: Examples) -> float:
 
     return distance ** 0.5
 
-
+# TODO: Delete!
 
 def get_full_examples_from_csv(path) -> Examples:
     return path
@@ -89,3 +103,6 @@ def my(path: str) -> Examples:
         example[0] = 1 if example[0] == POSITIVE_SIGN else 0
         examples.append(example)
     return np.array(examples)
+
+def get_generator_examples_from_csv(path: str) -> Examples:
+    return path
