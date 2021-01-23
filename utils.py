@@ -25,8 +25,8 @@ Forest = np.array
 Centroid = np.array
 Classifier = Tuple[Tuple[int, float], Examples, Examples]
 
-TRAIN_PATH = "./train.csv"
-TEST_PATH = "./test.csv"
+TRAIN_PATH = "./test_csv/train.csv"
+TEST_PATH = "./test_csv/test.csv"
 POSITIVE_SIGN = "M"
 M_VALUES = (1, 3, 5, 7, 9)
 N_SPLIT = 5
