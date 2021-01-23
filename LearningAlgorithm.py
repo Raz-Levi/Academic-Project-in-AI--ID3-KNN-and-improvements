@@ -25,6 +25,7 @@ class LearningAlgorithm(abc.ABC):
 
         return classify_correct / test_examples_amount
 
+    ######### Private Functions for LearningAlgorithm #########
     @abc.abstractmethod
     def classify_one(self, test_example: Examples) -> int:
         ...

@@ -30,7 +30,7 @@ class ID3ContinuousFeatures(LearningAlgorithm):
     def classify_one(self, test_example: Examples) -> int:
         return self._classify_one_recursive(self._classifier, test_example)
 
-    ######### Helper Functions for ID3 Algorithm #########
+    ######### Private Functions for ID3 Algorithm #########
 
     def _tdidt_algorithm(self, train_examples: Examples, default: int,
                          select_feature: Callable[[Examples], Tuple[Tuple[int, float], Examples, Examples]]) -> Classifier:

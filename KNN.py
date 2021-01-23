@@ -40,8 +40,7 @@ class KNN(LearningAlgorithm):
                 vote_against += 1
         return 1 if vote_for >= vote_against else 0
 
-    ######### Helper Functions for KNN Algorithm #########
-
+    ######### Private Functions for KNN Algorithm #########
     def _get_loss(self, test_examples: Examples) -> float:
         fp, fn = 0, 0
         for example in test_examples:
